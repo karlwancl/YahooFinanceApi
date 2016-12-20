@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using CsvHelper;
+using Flurl;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace YahooFinanceApi
 {
-    public static class Yahoo
+    public static partial class Yahoo
     {
         private const string YahooFinanceUrl = "http://ichart.finance.yahoo.com/table.csv";
 
@@ -37,27 +38,24 @@ namespace YahooFinanceApi
         private const string IgnoreTag = "ignore";
         private const string CsvExtValue = ".csv";
 
-        public static async Task<IList<Candle>> GetAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, CancellationToken token = default(CancellationToken))
         {
             var candles = new List<Candle>();
             using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, PeriodMap[period], token).ConfigureAwait(false))
             using (var sr = new StreamReader(stream))
+            using (var csvReader = new CsvReader(sr))
             {
-                // Skip header
-                var row = await sr.ReadLineAsync().ConfigureAwait(false);
-
-                while (!sr.EndOfStream)
+                while (csvReader.Read())
                 {
-                    row = await sr.ReadLineAsync().ConfigureAwait(false);
-                    string[] entries = row.Split(',');
+                    string[] row = csvReader.CurrentRecord;
                     candles.Add(new Candle(
-                        Convert.ToDateTime(entries[0]),
-                        Convert.ToDecimal(entries[1]),
-                        Convert.ToDecimal(entries[2]),
-                        Convert.ToDecimal(entries[3]),
-                        Convert.ToDecimal(entries[4]),
-                        Convert.ToInt64(entries[5]),
-                        Convert.ToDecimal(entries[6])
+                        Convert.ToDateTime(row[0]),
+                        Convert.ToDecimal(row[1]),
+                        Convert.ToDecimal(row[2]),
+                        Convert.ToDecimal(row[3]),
+                        Convert.ToDecimal(row[4]),
+                        Convert.ToInt64(row[5]),
+                        Convert.ToDecimal(row[6])
                         ));
                 }
 
@@ -65,22 +63,19 @@ namespace YahooFinanceApi
             }
         }
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetHistoricalDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
         {
             var dividends = new List<DividendTick>();
             using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, DividendValue, token).ConfigureAwait(false))
             using (var sr = new StreamReader(stream))
+                using (var csvReader = new CsvReader(sr))
             {
-                // Skip header
-                var row = await sr.ReadLineAsync().ConfigureAwait(false);
-
-                while (!sr.EndOfStream)
+                while (csvReader.Read())
                 {
-                    row = await sr.ReadLineAsync().ConfigureAwait(false);
-                    string[] entries = row.Split(',');
+                    string[] row = csvReader.CurrentRecord;
                     dividends.Add(new DividendTick(
-                        Convert.ToDateTime(entries[0]),
-                        Convert.ToDecimal(entries[1])
+                        Convert.ToDateTime(row[0]),
+                        Convert.ToDecimal(row[1])
                         ));
                 }
 
