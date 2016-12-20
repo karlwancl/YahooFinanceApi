@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Linq;
 using YahooFinanceApi;
 
 class Program
 {
     static void Main(string[] args)
     {
-        var list = Yahoo.GetAsync("AAPL", new DateTime(2016, 1, 1), period: Period.Daily).Result;
-        var divList = Yahoo.GetDividendsAsync("AAPL").Result;
+        //var list = Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), period: Period.Daily).Result;
+        //var divList = Yahoo.GetHistoricalDividendsAsync("AAPL").Result;
+        var list = Yahoo.Create().Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh).GetAsync().Result;
+        var aapl = list["AAPL"];
+        Console.WriteLine(aapl[Tag.LastTradePriceOnly]);
         Console.ReadLine();
     }
 }
