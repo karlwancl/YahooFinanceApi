@@ -6,7 +6,7 @@ A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
 * Get historical data for stock
 
 ## Notes
-This library is intended for educational purposes only, any improper use of this library is not recommended.
+This library is intended for personal use only, any improper use of this library is not recommended.
 
 ## Supported Platforms
 * .NET Core 1.0
