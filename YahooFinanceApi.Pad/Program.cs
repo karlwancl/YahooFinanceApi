@@ -8,9 +8,13 @@ class Program
     {
         //var list = Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), period: Period.Daily).Result;
         //var divList = Yahoo.GetHistoricalDividendsAsync("AAPL").Result;
-        var list = Yahoo.Create().Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh).GetAsync().Result;
+        var list = Yahoo
+            .Symbol("AAPL", "GOOG")
+            .Tag(Tag.LastTradePriceOnly, Tag.ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh)
+            .GetAsync()
+            .Result;
         var aapl = list["AAPL"];
-        Console.WriteLine(aapl[Tag.LastTradePriceOnly]);
+        Console.WriteLine(aapl[Tag.LastTradePriceOnly].GetValue<decimal>());
         Console.ReadLine();
     }
 }
