@@ -23,7 +23,7 @@ You can find the package through Nuget
 ## How To Use
 ### Get stock quotes
 
-    var quotes = await Yahoo.Create().Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag,ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh).GetAsync();
+    var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag,ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh).GetAsync();
     var aapl = quotes["AAPL"];
     var price = aapl[Tag.LastTradePriceOnly];
 

@@ -17,7 +17,7 @@ namespace YahooFinanceApi
             return name;
         }
 
-        public static T GetValue<T>(string str)
+        public static T GetValue<T>(this string str)
             => (T)Convert.ChangeType(str, typeof(T));
     }
 }
