@@ -176,6 +176,8 @@ namespace YahooFinanceApi
         [EnumMember(Value = "x")]
         StockExchange,
         [EnumMember(Value = "y")]
-        DividendYield
+        DividendYield,
+        [EnumMember(Value = "s6")]
+        Revenue
     }
 }
