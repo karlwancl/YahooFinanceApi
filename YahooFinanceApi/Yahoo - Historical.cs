@@ -16,6 +16,11 @@ namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
+        // Singleton
+        private static object SyncLock = new object();
+        private static IFlurlClient YahooFinanceClient;
+        private static string Crumb;
+
         private const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
         private const string CookieUrl = "https://finance.yahoo.com";
         private const string CrumbUrl = "https://query1.finance.yahoo.com/v1/test/getcrumb";
@@ -83,42 +88,45 @@ namespace YahooFinanceApi
 
         private static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
-            using (var client = new FlurlClient().EnableCookies())
-            {
-                var crumb = await GetCrumbAsync(client, token).ConfigureAwait(false);
-                if (string.IsNullOrEmpty(crumb))
-                    throw new ArgumentNullException("Crumb is empty!");
+            await Task.Factory.StartNew(() => InitClient(token)).ConfigureAwait(false);
 
-                var url = QueryUrl
-                    .AppendPathSegment(symbol)
-                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
-                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
-                    .SetQueryParam(IntervalTag, $"1{PeriodMap[period]}")
-                    .SetQueryParam(EventsTag, events)
-                    .SetQueryParam(CrumbTag, crumb);
+            var url = QueryUrl
+                .AppendPathSegment(symbol)
+                .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
+                .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
+                .SetQueryParam(IntervalTag, $"1{PeriodMap[period]}")
+                .SetQueryParam(EventsTag, events)
+                .SetQueryParam(CrumbTag, Crumb);
 
-                return await client
-                    .WithUrl(url)
-                    .GetAsync(token)
-                    .ReceiveStream()
-                    .ConfigureAwait(false);
-            }
+            return await YahooFinanceClient
+                .WithUrl(url)
+                .GetAsync(token)
+                .ReceiveStream()
+                .ConfigureAwait(false);
         }
 
-        private static async Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken token)
+        private static void InitClient(CancellationToken token)
         {
-            var cookieResponse = await client
-                .WithUrl(CookieUrl)
-                .GetAsync(token)
-                .ConfigureAwait(false);
+            lock (SyncLock)
+            {
+                if (YahooFinanceClient == null || YahooFinanceClient.Cookies.Any(c => c.Value.Expired))
+                {
+                    YahooFinanceClient = new FlurlClient().EnableCookies();
 
-            cookieResponse.EnsureSuccessStatusCode();
+                    var cookieResponse = YahooFinanceClient
+                        .WithUrl(CookieUrl)
+                        .GetAsync(token)
+                        .Result;
 
-            return await client
-                .WithUrl(CrumbUrl)
-                .GetAsync(token)
-                .ReceiveString()
-                .ConfigureAwait(false);
+                    cookieResponse.EnsureSuccessStatusCode();
+
+                    Crumb = YahooFinanceClient
+                        .WithUrl(CrumbUrl)
+                        .GetAsync(token)
+                        .ReceiveString()
+                        .Result;
+                } 
+            }
         }
     }
 }
