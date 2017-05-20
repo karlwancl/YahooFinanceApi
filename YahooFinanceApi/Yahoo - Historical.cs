@@ -48,21 +48,27 @@ namespace YahooFinanceApi
             using (var sr = new StreamReader(stream))
             using (var csvReader = new CsvReader(sr))
             {
-               while (csvReader.Read())
-               {
-                   string[] row = csvReader.CurrentRecord;
-                   candles.Add(new Candle(
-                       Convert.ToDateTime(row[0]),
-                       Convert.ToDecimal(row[1]),
-                       Convert.ToDecimal(row[2]),
-                       Convert.ToDecimal(row[3]),
-                       Convert.ToDecimal(row[4]),
-                       Convert.ToInt64(row[6]),
-                       Convert.ToDecimal(row[5])
-                       ));
-               }
+                while (csvReader.Read())
+                {
+                    string[] row = csvReader.CurrentRecord;
+                    try
+                    {
+                        candles.Add(new Candle(
+                            Convert.ToDateTime(row[0]),
+                            Convert.ToDecimal(row[1]),
+                            Convert.ToDecimal(row[2]),
+                            Convert.ToDecimal(row[3]),
+                            Convert.ToDecimal(row[4]),
+                            Convert.ToInt64(row[6]),
+                            Convert.ToDecimal(row[5])));
+                    }
+                    catch
+                    {
+                        // Intentionally blank, ignore all record with invalid format
+                    }
+                }
 
-               return ascending ? candles.OrderBy(c => c.DateTime).ToList() : candles.OrderByDescending(c => c.DateTime).ToList();
+                return ascending ? candles.OrderBy(c => c.DateTime).ToList() : candles.OrderByDescending(c => c.DateTime).ToList();
             }
         }
 
@@ -76,11 +82,17 @@ namespace YahooFinanceApi
                while (csvReader.Read())
                {
                    string[] row = csvReader.CurrentRecord;
-                   dividends.Add(new DividendTick(
-                       Convert.ToDateTime(row[0]),
-                       Convert.ToDecimal(row[1])
-                       ));
-               }
+                    try
+                    {
+                        dividends.Add(new DividendTick(
+                            Convert.ToDateTime(row[0]),
+                            Convert.ToDecimal(row[1])));
+                    }
+                    catch
+                    {
+                        // Intentionally blank, ignore all record with invalid format
+                    }
+                }
 
                return ascending ? dividends.OrderBy(c => c.DateTime).ToList() : dividends.OrderByDescending(c => c.DateTime).ToList();
             }
