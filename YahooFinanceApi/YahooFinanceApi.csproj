@@ -6,13 +6,14 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
     <Copyright>Copyright (c) 2016-* SalmonThinLion</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>1.0.4</VersionPrefix>
+    <VersionPrefix>1.0.5</VersionPrefix>
     <Authors>SalmonThinLion</Authors>
     <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;API</PackageTags>
     <PackageReleaseNotes>
+      [21/05/2017] Fixes empty crumb exception when doing 2nd or more requests, added skipping of invalid records for history retrieval
       [19/05/2017] Uses new Yahoo Finance Api
       [18/05/2017] Added tag for revenue (Thanks for PR from @strtdusty)
       [23/12/2016] Simplified api call

@@ -20,7 +20,7 @@ class Program
         //    Console.WriteLine("{0}: {1}", symbols[i],  divList.Any() ? divList.Last().DateTime.ToString() : "None");
         //});
 
-        candles = Yahoo.GetHistoricalAsync("FSESX", new DateTime(2016, 1, 1), period: Period.Daily).Result;
+        candles = Yahoo.GetHistoricalAsync("^GSPC", new DateTime(2016, 1, 1), period: Period.Daily).Result;
 
         //var list = Yahoo
         //   .Symbol("VAW")
