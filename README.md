@@ -8,7 +8,7 @@ A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
 ## Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
 
-## Notice [21/3/2017]
+## Notice [21/5/2017]
 Yahoo has recently changed the URL and the mechanism of retrieving stock history, the old version of the Api no longer works properly. Please make sure that you have updated your version of YahooFinanceApi to get the thing works.
 
 ## Supported Platforms
