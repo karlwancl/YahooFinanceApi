@@ -34,8 +34,8 @@ namespace YahooFinanceApi
         private static readonly IDictionary<Period, string> PeriodMap = new Dictionary<Period, string>
         {
             {Period.Daily, "d"},
-            {Period.Weekly, "w"},
-            {Period.Monthly, "m"}
+            {Period.Weekly, "wk"},
+            {Period.Monthly, "mo"}
         };
 
         private const string HistoryValue = "history";
