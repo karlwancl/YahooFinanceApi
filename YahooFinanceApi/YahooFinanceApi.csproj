@@ -6,7 +6,7 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
     <Copyright>Copyright (c) 2016-* SalmonThinLion</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>1.0.6</VersionPrefix>
+    <VersionPrefix>1.0.7</VersionPrefix>
     <Authors>SalmonThinLion</Authors>
     <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
