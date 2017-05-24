@@ -17,7 +17,8 @@ namespace YahooFinanceApi
     public static partial class Yahoo
     {
         // Singleton
-        private static object SyncLock = new object();
+        private static object InitClientAndCrumbLock = new object();
+        private static object WebCallLock = new object();
         private static IFlurlClient YahooFinanceClient;
         private static string Crumb;
 
@@ -100,7 +101,8 @@ namespace YahooFinanceApi
 
         private static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
-            await Task.Factory.StartNew(() => InitClient(token)).ConfigureAwait(false);
+            if (YahooFinanceClient == null)
+                await Task.Run(() => InitClientAndCrumb(token)).ConfigureAwait(false);
 
             var url = QueryUrl
                 .AppendPathSegment(symbol)
@@ -110,34 +112,37 @@ namespace YahooFinanceApi
                 .SetQueryParam(EventsTag, events)
                 .SetQueryParam(CrumbTag, Crumb);
 
-            return await YahooFinanceClient
-                .WithUrl(url)
-                .GetAsync(token)
-                .ReceiveStream()
-                .ConfigureAwait(false);
+            return await Task.Run(() =>
+            {
+                lock (WebCallLock)
+                    return YahooFinanceClient
+                        .WithUrl(url)
+                        .GetAsync(token)
+                        .ReceiveStream()
+                        .Result;
+            }).ConfigureAwait(false);
         }
 
-        private static void InitClient(CancellationToken token)
+        private static void InitClientAndCrumb(CancellationToken token)
         {
-            lock (SyncLock)
+            lock (InitClientAndCrumbLock)
             {
-                if (YahooFinanceClient == null || YahooFinanceClient.Cookies.Any(c => c.Value.Expired))
+                if (YahooFinanceClient == null)
                 {
                     YahooFinanceClient = new FlurlClient().EnableCookies();
 
-                    var cookieResponse = YahooFinanceClient
+                    YahooFinanceClient
                         .WithUrl(CookieUrl)
                         .GetAsync(token)
-                        .Result;
-
-                    cookieResponse.EnsureSuccessStatusCode();
+                        .Result
+                        .EnsureSuccessStatusCode();
 
                     Crumb = YahooFinanceClient
                         .WithUrl(CrumbUrl)
                         .GetAsync(token)
                         .ReceiveString()
                         .Result;
-                } 
+                }
             }
         }
     }

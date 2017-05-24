@@ -20,15 +20,31 @@ class Program
         //    Console.WriteLine("{0}: {1}", symbols[i],  divList.Any() ? divList.Last().DateTime.ToString() : "None");
         //});
 
-        candles = Yahoo.GetHistoricalAsync("^GSPC", new DateTime(2016, 1, 1), period: Period.Daily).Result;
+        //candles = Yahoo.GetHistoricalAsync("^GSPC", new DateTime(2016, 1, 1), period: Period.Daily).Result;
 
-        //var list = Yahoo
-        //   .Symbol("VAW")
-        //   .Tag(Tag.LastTradePriceOnly, Tag.ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh)
-        //   .GetAsync()
-        //   .Result;
-        //var aapl = list["VAW"];
-        //Console.WriteLine(aapl[Tag.LastTradePriceOnly]);
+		//var list = Yahoo
+		//   .Symbol("VAW")
+		//   .Tag(Tag.LastTradePriceOnly, Tag.ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh)
+		//   .GetAsync()
+		//   .Result;
+		//var aapl = list["VAW"];
+		//Console.WriteLine(aapl[Tag.LastTradePriceOnly]);
+		Enumerable.Range(0, 100)
+			  .AsParallel()
+			  .WithDegreeOfParallelism(16)
+			  .ForAll(i =>
+			  {
+				  try
+				  {
+					  Yahoo.GetHistoricalAsync(symbols[0], new DateTime(2017, 1, 1), new DateTime(2017, 2, 1), Period.Daily).Wait();
+				  }
+				  catch (Exception ex)
+				  {
+					  Console.WriteLine($"Failed: " + ex);
+				  }
+				  Console.WriteLine($"Done: " + i);
+			  });
+
         Console.ReadLine();
     }
 }
