@@ -18,7 +18,7 @@ namespace YahooFinanceApi
 
         public class Builder
         {
-            private const string YahooFinanceQuoteUrl = "http://finance.yahoo.com/d/quotes.csv";
+            private const string YahooFinanceQuoteUrl = "https://download.finance.yahoo.com/d/quotes.csv";
             private const string SymbolTag = "s";
             private const string FormatTag = "f";
 
