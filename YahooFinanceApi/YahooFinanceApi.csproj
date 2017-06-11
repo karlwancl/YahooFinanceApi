@@ -4,10 +4,10 @@
   </PropertyGroup>
   <PropertyGroup>
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
-    <Copyright>Copyright (c) 2016-* SalmonThinLion</Copyright>
+    <Copyright>Copyright (c) 2016-* LppKarl</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
     <VersionPrefix>1.0.8</VersionPrefix>
-    <Authors>SalmonThinLion</Authors>
+    <Authors>LppKarl</Authors>
     <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
@@ -22,8 +22,8 @@
   [20/12/2016] Renamed historical methods, Added stock quotes functionality
   [19/12/2016] First release
     </PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/salmonthinlion/YahooFinanceApi</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/salmonthinlion/YahooFinanceApi/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/lppkarl/YahooFinanceApi</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE</PackageLicenseUrl>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
