@@ -1,9 +1,15 @@
 # YahooFinanceApi
+[![Build status](https://ci.appveyor.com/api/projects/status/138s6on1y0wnaxms?svg=true)](https://ci.appveyor.com/project/lppkarl/yahoofinanceapi)
+[![NuGet](https://img.shields.io/nuget/v/YahooFinanceApi.svg)]()
+[![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)]()
+
 A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
 
 ## Features
-* Get stock quotes
-* Get historical data for stock
+* Get quotes
+* Get historical data
+* Get dividend data
+* Get stock split data
 
 ## Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
@@ -24,9 +30,14 @@ You can find the package through Nuget
     PM> Install-Package YahooFinanceApi
 
 ## How To Use
+
+### Add reference
+
+    using YahooFinanceApi;
+
 ### Get stock quotes
 
-    var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag,ChangeAndPercentChange, Tag.DaysLow, Tag.DaysHigh).GetAsync();
+    var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.Open, Tag.DaysHigh, Tag.DaysLow, Tag.PreviousClose).GetAsync();
     var aapl = quotes["AAPL"];
     var price = aapl[Tag.LastTradePriceOnly];
 
@@ -42,15 +53,18 @@ You can find the package through Nuget
 ### Get dividend history for a stock
 
     // You should be able to query data from various markets including US, HK, TW
-    var dividendHistory = await Yahoo.GetHistoricalDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
-    foreach (var candle in dividendHistory)
+    var dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
+    foreach (var candle in dividends)
     {
         Console.WriteLine($"DateTime: {candle.DateTime}, Dividend: {candle.Dividend}");
     }
 
+### Get stock split history for a stock
+    var splits = await Yahoo.GetSplitsAsync("AAPL", new DateTime(2014, 6, 8), new DateTime(2014, 6, 10));
+    foreach (var s in splits)
+    {
+        Console.WriteLine($"DateTime: {s.DateTime}, AfterSplit: {s.AfterSplit}, BeforeSplit: {s.BeforeSplit}");
+    }
+
 ### Powered by
 * [Flurl](https://github.com/tmenier/Flurl) ([@tmenier](https://github.com/tmenier)) - A simple & elegant fluent-style REST api library 
-
-### License
-This library is under [MIT License](https://github.com/salmonthinlion/YahooFinanceApi/blob/master/LICENSE)
-

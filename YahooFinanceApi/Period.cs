@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Runtime.Serialization;
 
 namespace YahooFinanceApi
 {
     public enum Period
     {
+        [EnumMember(Value = "d")]
         Daily,
+        [EnumMember(Value = "wk")]
         Weekly,
+        [EnumMember(Value = "mo")]
         Monthly
     }
 }

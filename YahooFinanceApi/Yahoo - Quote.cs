@@ -2,11 +2,9 @@
 using CsvHelper.Configuration;
 using Flurl;
 using Flurl.Http;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,12 +16,12 @@ namespace YahooFinanceApi
 
         public class Builder
         {
-            private const string YahooFinanceQuoteUrl = "https://download.finance.yahoo.com/d/quotes.csv";
-            private const string SymbolTag = "s";
-            private const string FormatTag = "f";
+            const string YahooFinanceQuoteUrl = "https://download.finance.yahoo.com/d/quotes.csv";
+            const string SymbolTag = "s";
+            const string FormatTag = "f";
 
-            private IList<string> _symbols;
-            private IList<Tag> _tags;
+            readonly IList<string> _symbols;
+            readonly IList<Tag> _tags;
 
             internal Builder(IList<string> symbols = null, IList<Tag> tags = null)
             {

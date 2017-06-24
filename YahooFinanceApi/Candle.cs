@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YahooFinanceApi
 {
-    public class Candle
+    public class Candle: ITick
     {
         public Candle(DateTime dateTime, decimal open, decimal high, decimal low, decimal close, long volume, decimal adjustedClose)
         {
@@ -17,18 +17,18 @@ namespace YahooFinanceApi
             AdjustedClose = adjustedClose;
         }
 
-        public DateTime DateTime { get; private set; }
+        public DateTime DateTime { get; }
 
-        public decimal Open { get; private set; }
+        public decimal Open { get; }
 
-        public decimal High { get; private set; }
+        public decimal High { get; }
 
-        public decimal Low { get; private set; }
+        public decimal Low { get; }
 
-        public decimal Close { get; private set; }
+        public decimal Close { get; }
 
-        public long Volume { get; private set; }
+        public long Volume { get; }
 
-        public decimal AdjustedClose { get; private set; }
+        public decimal AdjustedClose { get; }
     }
 }

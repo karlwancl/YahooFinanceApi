@@ -5,101 +5,89 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net;
-using Flurl.Http.Configuration;
 
 namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
         // Singleton
-        private static object InitClientAndCrumbLock = new object();
-        private static object WebCallLock = new object();
-        private static IFlurlClient YahooFinanceClient;
-        private static string Crumb;
+        static object InitClientAndCrumbLock = new object();
+        static object WebCallLock = new object();
+        static IFlurlClient YahooFinanceClient;
+        static string Crumb;
 
-        private const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
-        private const string CookieUrl = "https://finance.yahoo.com";
-        private const string CrumbUrl = "https://query1.finance.yahoo.com/v1/test/getcrumb";
+        const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
+        const string CookieUrl = "https://finance.yahoo.com";
+        const string CrumbUrl = "https://query1.finance.yahoo.com/v1/test/getcrumb";
 
-        private const string Period1Tag = "period1";
-        private const string Period2Tag = "period2";
-        private const string IntervalTag = "interval";
-        private const string EventsTag = "events";
-        private const string CrumbTag = "crumb";
-
-        private static readonly IDictionary<Period, string> PeriodMap = new Dictionary<Period, string>
-        {
-            {Period.Daily, "d"},
-            {Period.Weekly, "wk"},
-            {Period.Monthly, "mo"}
-        };
-
-        private const string HistoryValue = "history";
-        private const string DividendValue = "div";
+        const string Period1Tag = "period1";
+        const string Period2Tag = "period2";
+        const string IntervalTag = "interval";
+        const string EventsTag = "events";
+        const string CrumbTag = "crumb";
 
         public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, CancellationToken token = default(CancellationToken))
+		=> await GetTicksAsync(symbol, 
+                               startTime, 
+                               endTime, 
+                               period, 
+                               ShowOption.History, 
+                               r => r.ToCandle(),
+                               ascending, 
+                               token);
+
+		public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
+            => await GetTicksAsync(symbol, 
+                                   startTime, 
+                                   endTime, 
+                                   Period.Daily, 
+                                   ShowOption.Dividend, 
+                                   r => r.ToDividendTick(), 
+                                   ascending, 
+                                   token);
+                               
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
+            => await GetTicksAsync(symbol, 
+                                   startTime, 
+                                   endTime, 
+                                   Period.Daily, 
+                                   ShowOption.Split, 
+                                   r => r.ToSplitTick(),
+                                   ascending, 
+                                   token);
+
+        static async Task<IList<T>> GetTicksAsync<T>(
+            string symbol,
+            DateTime? startTime,
+            DateTime? endTime,
+            Period period,
+            ShowOption showOption,
+            Func<string[], T> instanceFunction,
+            bool ascending, 
+            CancellationToken token
+            ) where T: ITick
         {
-            var candles = new List<Candle>();
-            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, HistoryValue, token).ConfigureAwait(false))
-            using (var sr = new StreamReader(stream))
-            using (var csvReader = new CsvReader(sr))
-            {
-                while (csvReader.Read())
-                {
-                    string[] row = csvReader.CurrentRecord;
-                    try
-                    {
-                        candles.Add(new Candle(
-                            Convert.ToDateTime(row[0]),
-                            Convert.ToDecimal(row[1]),
-                            Convert.ToDecimal(row[2]),
-                            Convert.ToDecimal(row[3]),
-                            Convert.ToDecimal(row[4]),
-                            Convert.ToInt64(row[6]),
-                            Convert.ToDecimal(row[5])));
-                    }
-                    catch
-                    {
-                        // Intentionally blank, ignore all record with invalid format
-                    }
-                }
+            if (instanceFunction == null)
+                return new List<T>();
 
-                return ascending ? candles.OrderBy(c => c.DateTime).ToList() : candles.OrderByDescending(c => c.DateTime).ToList();
-            }
-        }
+            var ticks = new List<T>();
+			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
+			using (var sr = new StreamReader(stream))
+			using (var csvReader = new CsvReader(sr))
+			{
+				while (csvReader.Read())
+				{
+					string[] row = csvReader.CurrentRecord;
+                    try { ticks.Add(instanceFunction(row)); } catch { /* Intentionally blank, ignore all record with invalid format */ }
+				}
 
-        public static async Task<IList<DividendTick>> GetHistoricalDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
-        {
-            var dividends = new List<DividendTick>();
-            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, Period.Daily, DividendValue, token).ConfigureAwait(false))
-            using (var sr = new StreamReader(stream))
-            using (var csvReader = new CsvReader(sr))
-            {
-               while (csvReader.Read())
-               {
-                   string[] row = csvReader.CurrentRecord;
-                    try
-                    {
-                        dividends.Add(new DividendTick(
-                            Convert.ToDateTime(row[0]),
-                            Convert.ToDecimal(row[1])));
-                    }
-                    catch
-                    {
-                        // Intentionally blank, ignore all record with invalid format
-                    }
-                }
+                return ticks.OrderBy(c => c.DateTime, new DateTimeComparer(ascending)).ToList();
+			}
+		}
 
-               return ascending ? dividends.OrderBy(c => c.DateTime).ToList() : dividends.OrderByDescending(c => c.DateTime).ToList();
-            }
-        }
-
-        private static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
+        static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
             if (YahooFinanceClient == null)
                 await Task.Run(() => InitClientAndCrumb(token)).ConfigureAwait(false);
@@ -108,7 +96,7 @@ namespace YahooFinanceApi
                 .AppendPathSegment(symbol)
                 .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
                 .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
-                .SetQueryParam(IntervalTag, $"1{PeriodMap[period]}")
+                .SetQueryParam(IntervalTag, $"1{period.Name()}")
                 .SetQueryParam(EventsTag, events)
                 .SetQueryParam(CrumbTag, Crumb);
 
@@ -123,25 +111,27 @@ namespace YahooFinanceApi
             }).ConfigureAwait(false);
         }
 
-        private static void InitClientAndCrumb(CancellationToken token)
+        static void InitClientAndCrumb(CancellationToken token)
         {
             lock (InitClientAndCrumbLock)
             {
                 if (YahooFinanceClient == null)
                 {
-                    YahooFinanceClient = new FlurlClient().EnableCookies();
+                    var client = new FlurlClient().EnableCookies();
 
-                    YahooFinanceClient
+                    client
                         .WithUrl(CookieUrl)
                         .GetAsync(token)
                         .Result
                         .EnsureSuccessStatusCode();
 
-                    Crumb = YahooFinanceClient
+                    Crumb = client
                         .WithUrl(CrumbUrl)
                         .GetAsync(token)
                         .ReceiveString()
                         .Result;
+                    
+                    YahooFinanceClient = client;
                 }
             }
         }

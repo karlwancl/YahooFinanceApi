@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YahooFinanceApi", "YahooFinanceApi\YahooFinanceApi.csproj", "{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceApi", "YahooFinanceApi\YahooFinanceApi.csproj", "{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YahooFinanceApi.Pad", "YahooFinanceApi.Pad\YahooFinanceApi.Pad.csproj", "{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceApi.Tests", "YahooFinanceApi.Tests\YahooFinanceApi.Tests.csproj", "{1A68EA70-E96B-4E00-95BA-83B32D884228}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,18 +29,18 @@ Global
 		{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}.Release|x64.Build.0 = Release|Any CPU
 		{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}.Release|x86.Build.0 = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|x64.Build.0 = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Debug|x86.Build.0 = Debug|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|x64.ActiveCfg = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|x64.Build.0 = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|x86.ActiveCfg = Release|Any CPU
-		{7FC7B504-EC4C-40F0-85A9-A29D2C7144E1}.Release|x86.Build.0 = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Debug|x86.Build.0 = Debug|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|x64.ActiveCfg = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|x64.Build.0 = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|x86.ActiveCfg = Release|Any CPU
+		{1A68EA70-E96B-4E00-95BA-83B32D884228}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

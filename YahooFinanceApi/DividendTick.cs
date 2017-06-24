@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace YahooFinanceApi
 {
-    public class DividendTick
+    public class DividendTick: ITick
     {
         public DividendTick(DateTime dateTime, decimal dividend)
         {
@@ -12,8 +10,8 @@ namespace YahooFinanceApi
             Dividend = dividend;
         }
 
-        public DateTime DateTime { get; private set; }
+        public DateTime DateTime { get; }
 
-        public decimal Dividend { get; private set; }
+        public decimal Dividend { get; }
     }
 }

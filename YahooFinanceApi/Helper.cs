@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace YahooFinanceApi
 {
-    internal static class Helper
+    static class Helper
     {
-        private readonly static DateTime DefaultUnixDateTime = new DateTime(1970, 1, 1);
+        readonly static DateTime DefaultUnixDateTime = new DateTime(1970, 1, 1);
 
         public static string Name<T>(this T @enum)
         {
