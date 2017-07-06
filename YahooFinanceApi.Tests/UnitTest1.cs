@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -8,10 +9,16 @@ namespace YahooFinanceApi.Tests
 {
     public class UnitTest1
     {
+        public UnitTest1()
+        {
+            // Test culture invariant
+			CultureInfo.CurrentCulture = new CultureInfo("nl-nl");
+        }
+
         [Fact]
         public void PeriodTest()
         {
-            const string aaplTag = "aapl";
+			const string aaplTag = "aapl";
 
             var periods = Enum.GetValues(typeof(Period)).Cast<Period>();
             var dict = new Dictionary<Period, decimal>
@@ -44,7 +51,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public void DividendTest()
         {
-            const string aaplTag = "aapl";
+			const string aaplTag = "aapl";
 
             var hist = Yahoo.GetDividendsAsync(aaplTag, new DateTime(2016, 2, 4), new DateTime(2016, 2, 5)).Result.First();
             Assert.Equal(0.52m, hist.Dividend);
@@ -53,7 +60,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public void SplitTest()
         {
-            const string aaplTag = "aapl";
+			const string aaplTag = "aapl";
 
             var hist = Yahoo.GetSplitsAsync(aaplTag, new DateTime(2014, 6, 8), new DateTime(2014, 6, 10)).Result.First();
             Assert.Equal(1, hist.BeforeSplit);
@@ -63,7 +70,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public void QuoteTest()
         {
-            const string aaplTag = "aapl";
+			const string aaplTag = "aapl";
 
             var tags = Enum.GetValues(typeof(Tag)).Cast<Tag>();
             var quote = Yahoo.Symbol(aaplTag).Tag(tags.ToArray()).GetAsync().Result;
@@ -76,7 +83,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public void ParallelTest()
         {
-            const string aaplTag = "aapl";
+			const string aaplTag = "aapl";
 
             Parallel.For(0, 10, n =>
             {

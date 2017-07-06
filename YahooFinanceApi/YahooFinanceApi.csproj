@@ -4,15 +4,16 @@
   </PropertyGroup>
   <PropertyGroup>
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
-    <Copyright>Copyright (c) 2016-* Karl Wan</Copyright>
+    <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>1.0.9</VersionPrefix>
+    <VersionPrefix>1.0.10</VersionPrefix>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
+  [06/07/2017] Fix parsing for different culture
   [24/06/2017] Added split query, renamed GetHistoricalDividendsAsync to GetDividendsAsync, fix potential bug on unauthorized exception
   [31/05/2017] Fix redirect exception targeting the old .NET framework
   [24/05/2017] Added lock to web call to ensure thread-safety
