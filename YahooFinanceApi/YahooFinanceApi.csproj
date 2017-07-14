@@ -6,23 +6,24 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
     <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>1.0.10</VersionPrefix>
+    <VersionPrefix>1.0.11</VersionPrefix>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
-  [06/07/2017] Fix parsing for different culture
-  [24/06/2017] Added split query, renamed GetHistoricalDividendsAsync to GetDividendsAsync, fix potential bug on unauthorized exception
-  [31/05/2017] Fix redirect exception targeting the old .NET framework
-  [24/05/2017] Added lock to web call to ensure thread-safety
-  [21/05/2017] Fixes empty crumb exception when doing 2nd or more requests, added skipping of invalid records for history retrieval
-  [19/05/2017] Uses new Yahoo Finance Api
-  [18/05/2017] Added tag for revenue (Thanks for PR from @strtdusty)
-  [23/12/2016] Simplified api call
-  [20/12/2016] Renamed historical methods, Added stock quotes functionality
-  [19/12/2016] First release
+[14/07/2017] Added retry/re-establish mechanism if yahoo returns 401(Unauthorized) exception, optimized the locking mechanism
+[06/07/2017] Fix parsing for different culture
+[24/06/2017] Added split query, renamed GetHistoricalDividendsAsync to GetDividendsAsync, fix potential bug on unauthorized exception
+[31/05/2017] Fix redirect exception targeting the old .NET framework
+[24/05/2017] Added lock to web call to ensure thread-safety
+[21/05/2017] Fixes empty crumb exception when doing 2nd or more requests, added skipping of invalid records for history retrieval
+[19/05/2017] Uses new Yahoo Finance Api
+[18/05/2017] Added tag for revenue (Thanks for PR from @strtdusty)
+[23/12/2016] Simplified api call
+[20/12/2016] Renamed historical methods, Added stock quotes functionality
+[19/12/2016] First release
     </PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/lppkarl/YahooFinanceApi</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE</PackageLicenseUrl>

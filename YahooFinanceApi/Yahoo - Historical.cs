@@ -13,14 +13,8 @@ namespace YahooFinanceApi
     public static partial class Yahoo
     {
         // Singleton
-        static object InitClientAndCrumbLock = new object();
-        static object WebCallLock = new object();
-        static IFlurlClient YahooFinanceClient;
-        static string Crumb;
-
+        static SemaphoreSlim _ss = new SemaphoreSlim(1, 1);
         const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
-        const string CookieUrl = "https://finance.yahoo.com";
-        const string CrumbUrl = "https://query1.finance.yahoo.com/v1/test/getcrumb";
 
         const string Period1Tag = "period1";
         const string Period2Tag = "period2";
@@ -29,14 +23,14 @@ namespace YahooFinanceApi
         const string CrumbTag = "crumb";
 
         public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, CancellationToken token = default(CancellationToken))
-		=> await GetTicksAsync(symbol, 
-                               startTime, 
-                               endTime, 
-                               period, 
-                               ShowOption.History, 
-                               r => r.ToCandle(),
-                               ascending, 
-                               token);
+		    => await GetTicksAsync(symbol, 
+	                               startTime, 
+	                               endTime, 
+	                               period, 
+	                               ShowOption.History, 
+	                               r => r.ToCandle(),
+	                               ascending, 
+	                               token);
 
 		public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
@@ -89,50 +83,41 @@ namespace YahooFinanceApi
 
         static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
-            if (YahooFinanceClient == null)
-                await Task.Run(() => InitClientAndCrumb(token)).ConfigureAwait(false);
+            var client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
+            var crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
 
-            var url = QueryUrl
-                .AppendPathSegment(symbol)
-                .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
-                .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
-                .SetQueryParam(IntervalTag, $"1{period.Name()}")
-                .SetQueryParam(EventsTag, events)
-                .SetQueryParam(CrumbTag, Crumb);
-
-            return await Task.Run(() =>
+            await _ss.WaitAsync().ConfigureAwait(false);
+            try
             {
-                lock (WebCallLock)
-                    return YahooFinanceClient
-                        .WithUrl(url)
-                        .GetAsync(token)
-                        .ReceiveStream()
-                        .Result;
-            }).ConfigureAwait(false);
-        }
-
-        static void InitClientAndCrumb(CancellationToken token)
-        {
-            lock (InitClientAndCrumbLock)
+                return await LocalGetResponseStreamAsync(client, crumb).ConfigureAwait(false);
+            }
+            catch (FlurlHttpException)
             {
-                if (YahooFinanceClient == null)
-                {
-                    var client = new FlurlClient().EnableCookies();
+                YahooClientFactory.Reset();
+                client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
+                crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
+                return await LocalGetResponseStreamAsync(client, crumb).ConfigureAwait(false);
+            }
+            finally
+            {
+                _ss.Release();   
+            }
 
-                    client
-                        .WithUrl(CookieUrl)
-                        .GetAsync(token)
-                        .Result
-                        .EnsureSuccessStatusCode();
+            async Task<Stream> LocalGetResponseStreamAsync(IFlurlClient localClient, string localCrumb)
+            {
+                var url = QueryUrl
+                    .AppendPathSegment(symbol)
+                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
+                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
+                    .SetQueryParam(IntervalTag, $"1{period.Name()}")
+                    .SetQueryParam(EventsTag, events)
+                    .SetQueryParam(CrumbTag, localCrumb);
 
-                    Crumb = client
-                        .WithUrl(CrumbUrl)
-                        .GetAsync(token)
-                        .ReceiveString()
-                        .Result;
-                    
-                    YahooFinanceClient = client;
-                }
+                return await localClient
+                    .WithUrl(url)
+                    .GetAsync(token)
+                    .ReceiveStream()
+                    .ConfigureAwait(false);
             }
         }
     }

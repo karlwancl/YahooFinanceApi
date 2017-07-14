@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using Flurl.Http;
 
 namespace YahooFinanceApi
 {
@@ -17,10 +21,13 @@ namespace YahooFinanceApi
             return name;
         }
 
-        public static T GetValue<T>(this string str)
-            => (T)Convert.ChangeType(str, typeof(T));
-
         public static string ToUnixTimestamp(this DateTime dateTime)
             => ((DateTimeOffset)dateTime).ToUnixTimeSeconds().ToString();
+
+        public static string GetRandomString(int length)
+        {
+            const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            return string.Join("", Enumerable.Range(0, length).Select(i => Chars[new Random().Next(Chars.Length)]));
+        }
     }
 }
