@@ -16,6 +16,15 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
+        public void HistoricalExceptionTest()
+        {
+            Action @delegate = () => Yahoo.GetHistoricalAsync("aapl1234", new DateTime(2017, 1, 3), new DateTime(2017, 1, 4)).Wait();
+            var aggregateEx = Assert.Throws<AggregateException>(@delegate);
+            var innerEx = Assert.IsType<Exception>(aggregateEx.InnerException);
+            Assert.Contains("invalid ticker", innerEx.Message);
+        }
+
+        [Fact]
         public void PeriodTest()
         {
 			const string aaplTag = "aapl";

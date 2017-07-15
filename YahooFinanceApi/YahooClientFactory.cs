@@ -73,8 +73,7 @@ namespace YahooFinanceApi
                     .EnableCookies()
                     .WithUrl($"{CookieUrl}?{Helper.GetRandomString(8)}");   // Random query param to avoid cached response
 
-                var response = await temp.GetAsync().ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
+                await temp.GetAsync().ConfigureAwait(false);
 
                 if (temp.Cookies?.Count > 0)
                     break;

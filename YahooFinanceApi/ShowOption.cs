@@ -2,7 +2,7 @@
 
 namespace YahooFinanceApi
 {
-    public enum ShowOption
+    enum ShowOption
     {
         [EnumMember(Value = "history")]
         History,

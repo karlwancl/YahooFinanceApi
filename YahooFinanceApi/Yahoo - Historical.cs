@@ -7,13 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
         // Singleton
-        static SemaphoreSlim _ss = new SemaphoreSlim(1, 1);
+        static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
 
         const string Period1Tag = "period1";
@@ -86,24 +87,28 @@ namespace YahooFinanceApi
             var client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
             var crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
 
-            await _ss.WaitAsync().ConfigureAwait(false);
+            await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                return await LocalGetResponseStreamAsync(client, crumb).ConfigureAwait(false);
+                return await LocalGetResponseStream(client, crumb).ConfigureAwait(false);
             }
-            catch (FlurlHttpException)
+            catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized)
             {
                 YahooClientFactory.Reset();
                 client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
                 crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
-                return await LocalGetResponseStreamAsync(client, crumb).ConfigureAwait(false);
+                return await LocalGetResponseStream(client, crumb).ConfigureAwait(false);
+            }
+            catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new Exception("You may have used an invalid ticker, or the endpoint is invalidated", ex);
             }
             finally
             {
-                _ss.Release();   
+                _semaphoreSlim.Release();   
             }
 
-            async Task<Stream> LocalGetResponseStreamAsync(IFlurlClient localClient, string localCrumb)
+            Task<Stream> LocalGetResponseStream(IFlurlClient localClient, string localCrumb)
             {
                 var url = QueryUrl
                     .AppendPathSegment(symbol)
@@ -113,11 +118,10 @@ namespace YahooFinanceApi
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, localCrumb);
 
-                return await localClient
+                return localClient
                     .WithUrl(url)
                     .GetAsync(token)
-                    .ReceiveStream()
-                    .ConfigureAwait(false);
+                    .ReceiveStream();
             }
         }
     }
