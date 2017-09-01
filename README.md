@@ -1,6 +1,7 @@
 # YahooFinanceApi
 [![Build status](https://ci.appveyor.com/api/projects/status/138s6on1y0wnaxms?svg=true)](https://ci.appveyor.com/project/lppkarl/yahoofinanceapi)
 [![NuGet](https://img.shields.io/nuget/v/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
+[![NuGet](https://img.shields.io/nuget/dt/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)](https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE)
 
 A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
