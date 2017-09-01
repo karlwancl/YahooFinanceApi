@@ -15,7 +15,7 @@ A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
 This library is intended for personal use only, any improper use of this library is not recommended.
 
 ## Install Note
-For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you automatically (Bugged?)
+For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
 
 ## Notice [21/5/2017]
 Yahoo has recently changed the URL and the mechanism of retrieving stock history, the old version of the Api no longer works properly. Please make sure that you have updated your version of YahooFinanceApi to get the thing works.
