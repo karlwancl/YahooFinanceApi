@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using YahooFinanceApi.Lookup;
 
 namespace YahooFinanceApi.Tests
 {
@@ -14,6 +16,14 @@ namespace YahooFinanceApi.Tests
         {
             // Test culture invariant
 			CultureInfo.CurrentCulture = new CultureInfo("nl-nl");
+        }
+
+        [Fact]
+        public void SymbolListTest()
+        {
+            const string Symbol = "aap";
+            var symbols = YahooLookup.GetLookupSymbolsAsync(Symbol, LookupType.Stocks, MarketType.US_Canada).Result;
+            Assert.True(symbols.Any(s => s.CompanyName == "Advance Auto Parts, Inc."));
         }
 
         [Fact]

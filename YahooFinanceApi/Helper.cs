@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -35,5 +36,7 @@ namespace YahooFinanceApi
         public static string GetRandomString(int length)
             => Guid.NewGuid().ToString().Substring(0, length);
 
+        public static IEnumerable<string> AddSuffixes(this string prefix)
+            => "abcdefghijklmnopqrstuvwxyz".Select(a => prefix + a);
     }
 }
