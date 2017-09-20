@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
-    <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
+    <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
     <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
     <VersionPrefix>1.1.0</VersionPrefix>
