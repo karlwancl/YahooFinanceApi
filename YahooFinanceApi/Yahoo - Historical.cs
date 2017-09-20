@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using System.Globalization;
 
 namespace YahooFinanceApi
 {
@@ -23,34 +24,40 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
 	                               ShowOption.History, 
 	                               r => r.ToCandle(),
+                                   r => r.ToFallbackCandle(),
 	                               ascending, 
+                                   leaveZeroIfInvalidRow,
 	                               token);
 
-		public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
+		public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend, 
                                    r => r.ToDividendTick(), 
+                                   r => r.ToFallbackDividendTick(),
                                    ascending, 
+                                   leaveZeroIfInvalidRow,
                                    token);
                                
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Split, 
                                    r => r.ToSplitTick(),
+                                   r => r.ToFallbackSplitTick(),
                                    ascending, 
+                                   leaveZeroIfInvalidRow,
                                    token);
 
         static async Task<IList<T>> GetTicksAsync<T>(
@@ -60,7 +67,9 @@ namespace YahooFinanceApi
             Period period,
             ShowOption showOption,
             Func<string[], T> instanceFunction,
+            Func<string[], T> fallbackFunction,
             bool ascending, 
+            bool leaveZeroIfInvalidRow,
             CancellationToken token
             ) where T: ITick
         {
@@ -75,7 +84,17 @@ namespace YahooFinanceApi
 				while (csvReader.Read())
 				{
 					string[] row = csvReader.CurrentRecord;
-                    try { ticks.Add(instanceFunction(row)); } catch { /* Intentionally blank, ignore all record with invalid format */ }
+                    DateTime? dateTime = null;
+                    try
+                    {
+                        dateTime = Convert.ToDateTime(row[0], CultureInfo.InvariantCulture);
+                        ticks.Add(instanceFunction(row));
+                    }
+                    catch
+                    {
+                        if (dateTime.HasValue && leaveZeroIfInvalidRow)
+                            ticks.Add(fallbackFunction(row));
+                    }
 				}
 
                 return ticks.OrderBy(c => c.DateTime, new DateTimeComparer(ascending)).ToList();

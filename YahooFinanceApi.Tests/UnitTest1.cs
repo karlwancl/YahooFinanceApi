@@ -33,8 +33,8 @@ namespace YahooFinanceApi.Tests
             var dict = new Dictionary<Period, decimal>
             {
                 {Period.Daily, 115.800003m},
-                {Period.Weekly, 117.949997m},
-                {Period.Monthly, 127.029999m}
+                {Period.Weekly, 115.800003m},
+                {Period.Monthly, 115.800003m}
             };
             periods.ToList().ForEach(p =>
             {
@@ -52,10 +52,8 @@ namespace YahooFinanceApi.Tests
 			Assert.Equal(115.800003m, hist.Open);
 			Assert.Equal(116.330002m, hist.High);
 			Assert.Equal(114.760002m, hist.Low);
-            // Bug: Yahoo has recently switched the close & adjusted close column in their csv, 
-            // Don't know why they are doing so, the test case is temporailiy commented
-			//Assert.Equal(116.150002m, hist.Close);
-			//Assert.Equal(115.173210m, hist.AdjustedClose);
+			Assert.Equal(116.150002m, hist.Close);
+			Assert.Equal(114.722694m, hist.AdjustedClose);
 			Assert.Equal(28_781_900, hist.Volume);
 		}
 
