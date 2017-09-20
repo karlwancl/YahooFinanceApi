@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 1.4.</Description>
     <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>1.0.12</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <Authors>Karl Wan</Authors>
-    <TargetFramework>netstandard1.4</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
+[20/09/2017] Added .NET Standard 2.0 support
 [15/07/2017] Better error message if yahoo returns 404(Not Found) exception.
 [14/07/2017] Added retry/re-establish mechanism if yahoo returns 401(Unauthorized) exception, optimized the locking mechanism
 [06/07/2017] Fix parsing for different culture
