@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/dt/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)](https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE)
 
-A handy Yahoo! Finance api wrapper, based on .NET Standard 1.4
+A handy Yahoo! Finance api wrapper, based on .NET Standard 2.0
 
 ## Features
 * Get quotes
@@ -22,7 +22,7 @@ For traditional .NET framework user, if you find a "System.Runtime.Serialization
 Yahoo has recently changed the URL and the mechanism of retrieving stock history, the old version of the Api no longer works properly. Please make sure that you have updated your version of YahooFinanceApi to get the thing works.
 
 ## Supported Platforms
-* .NET Core 1.0
+* .NET Core 2.0
 * .NET framework 4.6.1 or above
 * Xamarin.iOS
 * Xamarin.Android
