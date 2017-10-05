@@ -26,6 +26,8 @@ namespace YahooFinanceApi
         Change,
         [EnumMember(Value = "c3")]
         Commission,
+        [EnumMember(Value = "c4")]
+        Currency,
         [EnumMember(Value = "c6")]
         ChangeRealtime,
         [EnumMember(Value = "c8")]
