@@ -49,6 +49,13 @@ You can find the package through Nuget
 
     // You should be able to query data from various markets including US, HK, TW
     var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
+
+    // For other market other than US, please specify timezone in order to get a correct range of data, e.g. For AX market
+    var history = await Yahoo.GetHistoricalAsync("rxp.ax", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily, timeZone: "AUS Eastern Standard Time");
+
+    // You can use the IANA timezone or the windows timezone
+    // Windows: http://www.xiirus.net/articles/article-_net-convert-datetime-from-one-timezone-to-another-7e44y.aspx
+
     foreach (var candle in history)
     {
         Console.WriteLine($"DateTime: {candle.DateTime}, Open: {candle.Open}, High: {candle.High}, Low: {candle.Low}, Close: {candle.Close}, Volume: {candle.Volume}, AdjustedClose: {candle.AdjustedClose}");

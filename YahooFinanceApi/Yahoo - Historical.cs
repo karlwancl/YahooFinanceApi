@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.Globalization;
+using TimeZoneConverter;
 
 namespace YahooFinanceApi
 {
@@ -24,36 +25,41 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        const string DefaultTimeZone = "America/New_York";
+
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = DefaultTimeZone, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
 	                               ShowOption.History, 
+                                   timeZone,
 	                               r => r.ToCandle(),
                                    r => r.ToFallbackCandle(),
 	                               ascending, 
                                    leaveZeroIfInvalidRow,
 	                               token);
 
-		public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = DefaultTimeZone, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend, 
+                                   timeZone,
                                    r => r.ToDividendTick(), 
                                    r => r.ToFallbackDividendTick(),
                                    ascending, 
                                    leaveZeroIfInvalidRow,
                                    token);
                                
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = DefaultTimeZone, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Split, 
+                                   timeZone,
                                    r => r.ToSplitTick(),
                                    r => r.ToFallbackSplitTick(),
                                    ascending, 
@@ -66,6 +72,7 @@ namespace YahooFinanceApi
             DateTime? endTime,
             Period period,
             ShowOption showOption,
+            string timeZone,
             Func<string[], T> instanceFunction,
             Func<string[], T> fallbackFunction,
             bool ascending, 
@@ -76,8 +83,9 @@ namespace YahooFinanceApi
             if (instanceFunction == null)
                 return new List<T>();
 
+            var timeZoneInfo = TZConvert.GetTimeZoneInfo(timeZone);
             var ticks = new List<T>();
-			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
+			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), timeZoneInfo, token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
@@ -101,7 +109,7 @@ namespace YahooFinanceApi
 			}
 		}
 
-        static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
+        static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, TimeZoneInfo timeZoneInfo, CancellationToken token)
         {
             var client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
             var crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
@@ -129,10 +137,12 @@ namespace YahooFinanceApi
 
             Task<Stream> LocalGetResponseStream(IFlurlClient localClient, string localCrumb)
             {
+                bool roundToDay = period == Period.Daily || period == Period.Weekly || period == Period.Monthly;
+
                 var url = QueryUrl
                     .AppendPathSegment(symbol)
-                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
-                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
+                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp(timeZoneInfo, roundToDay))
+                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp(timeZoneInfo, roundToDay))
                     .SetQueryParam(IntervalTag, $"1{period.Name()}")
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, localCrumb);
