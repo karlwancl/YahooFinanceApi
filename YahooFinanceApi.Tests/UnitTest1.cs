@@ -48,7 +48,8 @@ namespace YahooFinanceApi.Tests
 		{
 			const string aaplTag = "aapl";
 
-            var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true).Result.First();
+            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true, timeZone: "America/New_York").Result;
+            var hist = hist0.First();
 			Assert.Equal(115.800003m, hist.Open);
 			Assert.Equal(116.330002m, hist.High);
 			Assert.Equal(114.760002m, hist.Low);
@@ -62,7 +63,7 @@ namespace YahooFinanceApi.Tests
         {
             const string rxpaxTag = "rxp.ax";
 
-            var hist0 = Yahoo.GetHistoricalAsync(rxpaxTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true, timeZone: "AUS Eastern Standard Time").Result;
+            var hist0 = Yahoo.GetHistoricalAsync(rxpaxTag, new DateTime(2017, 1, 4), new DateTime(2017, 1, 5), Period.Daily, true, timeZone: "Australia/Sydney").Result;
             var hist = hist0.First();
 			Assert.Equal(0.965m, hist.Open);
 			Assert.Equal(0.965m, hist.High);

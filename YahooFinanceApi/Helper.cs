@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using TimeZoneConverter;
+using NodaTime;
 
 namespace YahooFinanceApi
 {
@@ -16,13 +16,19 @@ namespace YahooFinanceApi
             return name;
         }
 
-        public static string ToUnixTimestamp(this DateTime dateTime, TimeZoneInfo timeZoneInfo, bool roundToDay)
+        public static string ToUnixTimestamp(this DateTime dateTime, string timeZone)
         {
-            var utcDateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-            var corrDateTime = TimeZoneInfo.ConvertTime(utcDateTime, timeZoneInfo);
-            if (roundToDay && corrDateTime.Hour != 0)
-                corrDateTime = corrDateTime.Date.AddDays(1);
-            return ((DateTimeOffset)corrDateTime).ToUnixTimeSeconds().ToString();
+            var provider = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+            if (!string.IsNullOrWhiteSpace(timeZone))
+                provider = DateTimeZoneProviders.Tzdb[timeZone];
+
+            var str = provider
+                .AtStrictly(LocalDateTime.FromDateTime(dateTime))
+                .ToDateTimeOffset()
+                .ToUnixTimeSeconds()
+                .ToString();
+
+            return str;
         }
 
         public static string GetRandomString(int length)

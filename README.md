@@ -51,10 +51,10 @@ You can find the package through Nuget
     var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
 
     // For other market other than US, please specify timezone in order to get a correct range of data, e.g. For AX market
-    var history = await Yahoo.GetHistoricalAsync("rxp.ax", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily, timeZone: "AUS Eastern Standard Time");
+    var history = await Yahoo.GetHistoricalAsync("rxp.ax", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily, timeZone: "Australia/Sydney");
 
-    // You can use the IANA timezone or the windows timezone
-    // Windows: http://www.xiirus.net/articles/article-_net-convert-datetime-from-one-timezone-to-another-7e44y.aspx
+    // Only IANA timeznoe is supported
+    // Please refer: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
     foreach (var candle in history)
     {
