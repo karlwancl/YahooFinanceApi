@@ -48,7 +48,7 @@ namespace YahooFinanceApi.Tests
 		{
 			const string aaplTag = "aapl";
 
-            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true, timeZone: "America/New_York").Result;
+            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true).Result;
             var hist = hist0.First();
 			Assert.Equal(115.800003m, hist.Open);
 			Assert.Equal(116.330002m, hist.High);
@@ -57,21 +57,6 @@ namespace YahooFinanceApi.Tests
 			Assert.Equal(114.722694m, hist.AdjustedClose);
 			Assert.Equal(28_781_900, hist.Volume);
 		}
-
-        [Fact]
-        public void TimeZoneTest()
-        {
-            const string rxpaxTag = "rxp.ax";
-
-            var hist0 = Yahoo.GetHistoricalAsync(rxpaxTag, new DateTime(2017, 1, 4), new DateTime(2017, 1, 5), Period.Daily, true, timeZone: "Australia/Sydney").Result;
-            var hist = hist0.First();
-			Assert.Equal(0.965m, hist.Open);
-			Assert.Equal(0.965m, hist.High);
-			Assert.Equal(0.93m, hist.Low);
-			Assert.Equal(0.935m, hist.Close);
-			Assert.Equal(0.863688m, hist.AdjustedClose);
-			Assert.Equal(146_514, hist.Volume);
-        }
 
         [Fact]
         public void DividendTest()
@@ -115,6 +100,60 @@ namespace YahooFinanceApi.Tests
                 var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true).Result.First();
 				Assert.Equal(28_781_900, hist.Volume);
 			});
+        }
+
+        [Fact]
+        public void HistoricalDatesTest_US()
+        {
+            var from = new DateTime(2017, 10, 10);
+            var to = new DateTime(2017, 10, 12);
+
+            var hist = Yahoo.GetHistoricalAsync("C", from, to, Period.Daily, ascending: true).Result;
+
+            Assert.Equal(3, hist.Count());
+
+            Assert.Equal(from, hist.First().DateTime);
+            Assert.Equal(to, hist.Last().DateTime);
+
+            Assert.Equal(75.18m,     hist[0].AdjustedClose);
+            Assert.Equal(74.940002m, hist[1].AdjustedClose);
+            Assert.Equal(72.370003m, hist[2].AdjustedClose);
+        }
+
+        [Fact]
+        public void HistoricalDatesTest_UK()
+        {
+            var from = new DateTime(2017, 10, 10);
+            var to = new DateTime(2017, 10, 12);
+
+            var hist = Yahoo.GetHistoricalAsync("BA.L", from, to, Period.Daily, ascending: true).Result;
+
+            Assert.Equal(3, hist.Count());
+
+            Assert.Equal(from, hist.First().DateTime);
+            Assert.Equal(to, hist.Last().DateTime);
+
+            Assert.Equal(616.50m, hist[0].AdjustedClose);
+            Assert.Equal(615.00m, hist[1].AdjustedClose);
+            Assert.Equal(616.00m, hist[2].AdjustedClose);
+        }
+
+        [Fact]
+        public void HistoricalDatesTest_HK()
+        {
+            var from = new DateTime(2017, 10, 10);
+            var to = new DateTime(2017, 10, 12);
+
+            var hist = Yahoo.GetHistoricalAsync("2800.HK", from, to, Period.Daily, ascending: true).Result;
+
+            Assert.Equal(3, hist.Count());
+
+            Assert.Equal(from, hist.First().DateTime);
+            Assert.Equal(to, hist.Last().DateTime);
+
+            Assert.Equal(29.40m, hist[0].AdjustedClose);
+            Assert.Equal(29.25m, hist[1].AdjustedClose);
+            Assert.Equal(29.40m, hist[2].AdjustedClose);
         }
     }
 }

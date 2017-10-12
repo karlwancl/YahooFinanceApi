@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using NodaTime;
 
 namespace YahooFinanceApi
 {
@@ -16,6 +15,17 @@ namespace YahooFinanceApi
             return name;
         }
 
+        private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        internal static string ToUnixTimestamp(this DateTime dt)
+        {
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc); // assume Utc regardless of Kind
+            return (dt - Epoch).TotalSeconds.ToString("F0");
+        }
+
+        internal static DateTime EndOfDay(this DateTime dt) => dt.Date.AddDays(1).AddTicks(-1);
+
+        /*
         public static string ToUnixTimestamp(this DateTime dateTime, string timeZone)
         {
             var provider = DateTimeZoneProviders.Tzdb.GetSystemDefault();
@@ -30,6 +40,7 @@ namespace YahooFinanceApi
 
             return str;
         }
+        */
 
         public static string GetRandomString(int length)
         {

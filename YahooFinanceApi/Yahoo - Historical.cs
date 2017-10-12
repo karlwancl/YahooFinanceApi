@@ -2,6 +2,7 @@
 using Flurl;
 using Flurl.Http;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,41 +25,38 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = default(string), CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
 	                               ShowOption.History, 
-                                   timeZone,
-	                               r => r.ToCandle(timeZone, period),
-                                   r => r.ToFallbackCandle(timeZone, period),
+	                               r => r.ToCandle(),
+                                   r => r.ToFallbackCandle(),
 	                               ascending, 
                                    leaveZeroIfInvalidRow,
 	                               token);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = default(string), CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend, 
-                                   timeZone,
-                                   r => r.ToDividendTick(timeZone, Period.Daily), 
-                                   r => r.ToFallbackDividendTick(timeZone, Period.Daily),
+                                   r => r.ToDividendTick(), 
+                                   r => r.ToFallbackDividendTick(),
                                    ascending, 
                                    leaveZeroIfInvalidRow,
                                    token);
                                
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, string timeZone = default(string), CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Split, 
-                                   timeZone,
-                                   r => r.ToSplitTick(timeZone, Period.Daily),
-                                   r => r.ToFallbackSplitTick(timeZone, Period.Daily),
+                                   r => r.ToSplitTick(),
+                                   r => r.ToFallbackSplitTick(),
                                    ascending, 
                                    leaveZeroIfInvalidRow,
                                    token);
@@ -69,7 +67,6 @@ namespace YahooFinanceApi
             DateTime? endTime,
             Period period,
             ShowOption showOption,
-            string timeZone,
             Func<string[], T> instanceFunction,
             Func<string[], T> fallbackFunction,
             bool ascending, 
@@ -81,7 +78,7 @@ namespace YahooFinanceApi
                 return new List<T>();
 
             var ticks = new List<T>();
-			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), timeZone, token).ConfigureAwait(false))
+			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
@@ -91,7 +88,7 @@ namespace YahooFinanceApi
                     DateTime? dateTime = null;
                     try
                     {
-                        dateTime = row[0].ToSpecDateTime(timeZone, period);
+                        dateTime = row[0].ToSpecDateTime();
                         ticks.Add(instanceFunction(row));
                     }
                     catch
@@ -105,7 +102,7 @@ namespace YahooFinanceApi
 			}
 		}
 
-        static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, string timeZone, CancellationToken token)
+        static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
 			var client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
             var crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
@@ -135,11 +132,13 @@ namespace YahooFinanceApi
             {
 				var url = QueryUrl
                     .AppendPathSegment(symbol)
-                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp(timeZone))
-                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp(timeZone))
+                    .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
+                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).EndOfDay().ToUnixTimestamp())
                     .SetQueryParam(IntervalTag, $"1{period.Name()}")
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, localCrumb);
+
+                Debug.WriteLine(url);
 
                 return localClient
                     .WithUrl(url)
