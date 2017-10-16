@@ -26,7 +26,7 @@ namespace YahooFinanceApi
         const string CrumbTag = "crumb";
 
         public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-		    => await GetTicksAsync(symbol, 
+		    => await GetTicksAsync<Candle>(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
@@ -38,7 +38,7 @@ namespace YahooFinanceApi
 	                               token);
 
         public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync(symbol, 
+            => await GetTicksAsync<DividendTick>(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
@@ -48,16 +48,16 @@ namespace YahooFinanceApi
                                    ascending, 
                                    leaveZeroIfInvalidRow,
                                    token);
-                               
+
         public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync(symbol, 
-                                   startTime, 
-                                   endTime, 
-                                   Period.Daily, 
-                                   ShowOption.Split, 
+            => await GetTicksAsync<SplitTick>(symbol,
+                                   startTime,
+                                   endTime,
+                                   Period.Daily,
+                                   ShowOption.Split,
                                    r => r.ToSplitTick(),
                                    r => r.ToFallbackSplitTick(),
-                                   ascending, 
+                                   ascending,
                                    leaveZeroIfInvalidRow,
                                    token);
 
@@ -67,17 +67,17 @@ namespace YahooFinanceApi
             DateTime? endTime,
             Period period,
             ShowOption showOption,
-            Func<string[], T> instanceFunction,
-            Func<string[], T> fallbackFunction,
+            Func<string[], ITick> instanceFunction,
+            Func<string[], ITick> fallbackFunction,
             bool ascending, 
             bool leaveZeroIfInvalidRow,
             CancellationToken token
             ) where T: ITick
         {
+            var ticks = new List<ITick>();
             if (instanceFunction == null)
-                return new List<T>();
+                return ticks.Cast<T>().ToList();
 
-            var ticks = new List<T>();
 			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
@@ -97,9 +97,8 @@ namespace YahooFinanceApi
                             ticks.Add(fallbackFunction(row));
                     }
 				}
-
-                return ticks.OrderBy(c => c.DateTime, new DateTimeComparer(ascending)).ToList();
-			}
+                return ticks.OrderBy(tick => tick.DateTime, new DateTimeComparer(ascending)).Cast<T>().ToList();
+            }
 		}
 
         static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
@@ -133,7 +132,7 @@ namespace YahooFinanceApi
 				var url = QueryUrl
                     .AppendPathSegment(symbol)
                     .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
-                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).EndOfDay().ToUnixTimestamp())
+                    .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
                     .SetQueryParam(IntervalTag, $"1{period.Name()}")
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, localCrumb);

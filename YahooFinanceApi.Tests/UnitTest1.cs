@@ -139,21 +139,70 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public void HistoricalDatesTest_HK()
+        public void HistoricalDatesTest_TW()
         {
-            var from = new DateTime(2017, 10, 10);
-            var to = new DateTime(2017, 10, 12);
+            var from = new DateTime(2017, 10, 11);
+            var to = new DateTime(2017, 10, 13);
 
-            var hist = Yahoo.GetHistoricalAsync("2800.HK", from, to, Period.Daily, ascending: true).Result;
+            var hist = Yahoo.GetHistoricalAsync("2498.TW", from, to, Period.Daily, ascending: true).Result;
 
             Assert.Equal(3, hist.Count());
 
             Assert.Equal(from, hist.First().DateTime);
             Assert.Equal(to, hist.Last().DateTime);
 
-            Assert.Equal(29.40m, hist[0].AdjustedClose);
-            Assert.Equal(29.25m, hist[1].AdjustedClose);
-            Assert.Equal(29.40m, hist[2].AdjustedClose);
+            Assert.Equal(71.599998m, hist[0].AdjustedClose);
+            Assert.Equal(71.599998m, hist[1].AdjustedClose);
+            Assert.Equal(73.099998m, hist[2].AdjustedClose);
         }
+
+
+        [Theory]
+        [InlineData("SPY", "BRK-B")] // USA -5 (DST from second Sunday of Mar to first Sunday of Nov)
+        [InlineData("TD.TO", "CZX.V")] // Canada
+        [InlineData("BP.L", "VFEM.L")] // London
+        [InlineData("AIR.PA")] // Euronext
+        [InlineData("AIR.DE")] // Xetra
+        [InlineData("UNITECH.BO")] // Bombay
+        [InlineData("2800.HK")] // Hong Kong
+        [InlineData("000001.SS")] // Shanghai
+        [InlineData("2448.TW")] // Taiwan
+        [InlineData("005930.KS")] // Korea +9
+        [InlineData("BHP.AX", "ANZ.AX")] // Sydney +10 (DST from first Sunday in Oct to first Sunday in Apr)
+        public void HistoricalDatesTest(params string[] symbols)
+        {
+            var from = new DateTime(2017, 9, 12);
+            var to = from.AddDays(2);
+
+            foreach (var symbol in symbols)
+            {
+                var hist = Yahoo.GetHistoricalAsync(symbol, from, to, Period.Daily, ascending: true).Result;
+
+                Assert.Equal(3, hist.Count());
+
+                Assert.Equal(from, hist.First().DateTime);
+                Assert.Equal(to, hist.Last().DateTime);
+            }
+        }
+
+        /*
+        [Fact]
+        public void HistoricalCurrencyTest()
+        {
+            var from = new DateTime(2017, 10, 10);
+            var to = new DateTime(2017, 10, 12);
+
+            var hist = Yahoo.GetHistoricalAsync("EURUSD=X", from, to, Period.Daily, ascending: true).Result;
+
+            Assert.Equal(3, hist.Count());
+
+            Assert.Equal(1.174164m, hist[0].AdjustedClose);
+            Assert.Equal(1.181488m, hist[1].AdjustedClose);
+            Assert.Equal(1.186549m, hist[2].AdjustedClose);
+
+            Assert.Equal(from, hist.First().DateTime);
+            Assert.Equal(to, hist.Last().DateTime);
+        }
+        */
     }
 }
