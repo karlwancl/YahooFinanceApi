@@ -18,8 +18,9 @@ This library is intended for personal use only, any improper use of this library
 ## Install Note
 For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
 
-## Notice [21/5/2017]
-Yahoo has recently changed the URL and the mechanism of retrieving stock history, the old version of the Api no longer works properly. Please make sure that you have updated your version of YahooFinanceApi to get the thing works.
+## v2.0 Breaking change (2017/10/18)
+* Removed timezone support
+* All api call now reads and returns datetime in utc instead of local datetime
 
 ## Supported Platforms
 * .NET Core 2.0
@@ -48,13 +49,8 @@ You can find the package through Nuget
 ### Get historical data for a stock
 
     // You should be able to query data from various markets including US, HK, TW
+    // (v2.0) The startTime & endTime here defaults to EST timezone
     var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
-
-    // For other market other than US, please specify timezone in order to get a correct range of data, e.g. For AX market
-    var history = await Yahoo.GetHistoricalAsync("rxp.ax", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily, timeZone: "Australia/Sydney");
-
-    // Only IANA timeznoe is supported
-    // Please refer: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
     foreach (var candle in history)
     {

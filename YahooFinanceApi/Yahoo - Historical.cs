@@ -2,14 +2,13 @@
 using Flurl;
 using Flurl.Http;
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
-using System.Globalization;
+using System.Diagnostics;
 
 namespace YahooFinanceApi
 {
@@ -137,7 +136,7 @@ namespace YahooFinanceApi
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, localCrumb);
 
-                Debug.WriteLine(url);
+                //Debug.WriteLine(url);
 
                 return localClient
                     .WithUrl(url)

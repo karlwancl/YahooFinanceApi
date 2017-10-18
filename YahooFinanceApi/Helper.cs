@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using TimeZoneConverter;
 
 namespace YahooFinanceApi
 {
@@ -16,12 +17,12 @@ namespace YahooFinanceApi
         }
 
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly TimeZoneInfo TzEst = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-        private static DateTime ConvertTimeFromESTtoUTC(this DateTime dt) => TimeZoneInfo.ConvertTimeToUtc(dt, TzEst);
+        private static readonly TimeZoneInfo TzEst = TZConvert.GetTimeZoneInfo("Eastern Standard Time");    // Use TZConvert here for non-Windows platform
+        private static DateTime ConvertTimeFromEstToUtc(this DateTime dt) => TimeZoneInfo.ConvertTimeToUtc(dt, TzEst);
 
         internal static string ToUnixTimestamp(this DateTime dt)
             => DateTime.SpecifyKind(dt, DateTimeKind.Unspecified)
-                .ConvertTimeFromESTtoUTC()
+                .ConvertTimeFromEstToUtc()
                 .Subtract(Epoch)
                 .TotalSeconds
                 .ToString("F0");
