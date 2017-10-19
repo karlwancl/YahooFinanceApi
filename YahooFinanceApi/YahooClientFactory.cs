@@ -44,7 +44,10 @@ namespace YahooFinanceApi
                 try
                 {
                     if (string.IsNullOrEmpty(_crumb))
-                        _crumb = await _client.WithUrl(CrumbUrl).GetAsync().ReceiveString().ConfigureAwait(false);
+                        _crumb = await CrumbUrl.WithClient(_client)
+                                               .GetAsync()
+                                               .ReceiveString()
+                                               .ConfigureAwait(false);
 				}
                 finally
                 {
@@ -68,12 +71,11 @@ namespace YahooFinanceApi
             int retryCount;
             for (retryCount = 0; retryCount < MaxRetryCount; retryCount++)
             {
-                temp = new FlurlClient()
+                temp = new FlurlClient($"{CookieUrl}?{Helper.GetRandomString(8)}")  // Random query param to avoid cached response
                     .WithHeader(UserAgentKey, UserAgentValue)
-                    .EnableCookies()
-                    .WithUrl($"{CookieUrl}?{Helper.GetRandomString(8)}");   // Random query param to avoid cached response
-
-                await temp.GetAsync().ConfigureAwait(false);
+                    .EnableCookies();   
+                
+                await temp.Request().GetAsync().ConfigureAwait(false);
 
                 if (temp.Cookies?.Count > 0)
                     break;

@@ -20,7 +20,7 @@ For traditional .NET framework user, if you find a "System.Runtime.Serialization
 
 ## v2.0 Breaking change (2017/10/18)
 * Removed timezone support
-* All api call now reads and returns datetime in EST instead of local timezone
+* All api call now reads and returns datetime in EST instead of local timezone (Thanks for PR from @dshe)
 
 ## Supported Platforms
 * .NET Core 2.0

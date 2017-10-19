@@ -56,14 +56,14 @@ namespace YahooFinanceApi
                     .ReceiveStream()
                     .ConfigureAwait(false))
                 using (var sr = new StreamReader(s))
-                using (var csvReader = new CsvReader(sr, new CsvConfiguration { HasHeaderRecord = false }))
+                using (var csvReader = new CsvReader(sr, new Configuration { HasHeaderRecord = false }))
                 {
                     var output = new Dictionary<string, IDictionary<Tag, string>>();
                     int currentSymbolIndex = 0;
                     while (csvReader.Read())
                     {
                         var outputPerSymbol = new Dictionary<Tag, string>();
-                        var row = csvReader.CurrentRecord;
+                        var row = csvReader.Context.Record;
                         for (int i = 0; i < _tags.Count(); i++)
                             outputPerSymbol.Add(_tags[i], row[i]);
                         output.Add(_symbols[currentSymbolIndex++], outputPerSymbol);

@@ -83,7 +83,7 @@ namespace YahooFinanceApi
 			{
 				while (csvReader.Read())
 				{
-					string[] row = csvReader.CurrentRecord;
+                    string[] row = csvReader.Context.Record;
                     DateTime? dateTime = null;
                     try
                     {
@@ -102,20 +102,18 @@ namespace YahooFinanceApi
 
         static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
         {
-			var client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
-            var crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
+            var (client, crumb) = await _GetClientAndCrumbAsync();
 
             await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                return await LocalGetResponseStream(client, crumb).ConfigureAwait(false);
+                return await _GetResponseStreamAsync(client, crumb).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized)
             {
                 YahooClientFactory.Reset();
-                client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
-                crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
-                return await LocalGetResponseStream(client, crumb).ConfigureAwait(false);
+                (client, crumb) = await _GetClientAndCrumbAsync();
+                return await _GetResponseStreamAsync(client, crumb).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
             {
@@ -123,26 +121,37 @@ namespace YahooFinanceApi
             }
             finally
             {
-                _semaphoreSlim.Release();   
+                _semaphoreSlim.Release();
             }
 
-            Task<Stream> LocalGetResponseStream(IFlurlClient localClient, string localCrumb)
+            #region Local Functions
+
+            async Task<(IFlurlClient, string)> _GetClientAndCrumbAsync()
             {
-				var url = QueryUrl
+                var _client = await YahooClientFactory.GetClientAsync().ConfigureAwait(false);
+                var _crumb = await YahooClientFactory.GetCrumbAsync().ConfigureAwait(false);
+                return (_client, _crumb);
+            }
+
+            Task<Stream> _GetResponseStreamAsync(IFlurlClient _client, string _crumb)
+            {
+                var url = QueryUrl
                     .AppendPathSegment(symbol)
                     .SetQueryParam(Period1Tag, (startTime ?? new DateTime(1970, 1, 1)).ToUnixTimestamp())
                     .SetQueryParam(Period2Tag, (endTime ?? DateTime.Now).ToUnixTimestamp())
                     .SetQueryParam(IntervalTag, $"1{period.Name()}")
                     .SetQueryParam(EventsTag, events)
-                    .SetQueryParam(CrumbTag, localCrumb);
+                    .SetQueryParam(CrumbTag, _crumb);
 
                 //Debug.WriteLine(url);
 
-                return localClient
-                    .WithUrl(url)
+                return url
+                    .WithClient(_client)
                     .GetAsync(token)
                     .ReceiveStream();
             }
+
+            #endregion
         }
     }
 }
