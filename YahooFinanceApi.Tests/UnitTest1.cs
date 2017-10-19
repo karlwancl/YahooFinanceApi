@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public void DividendTest()
         {
-			const string aaplTag = "aapl";
+            const string aaplTag = "aapl";
 
             var hist = Yahoo.GetDividendsAsync(aaplTag, new DateTime(2016, 2, 4), new DateTime(2016, 2, 5)).Result.First();
             Assert.Equal(0.52m, hist.Dividend);
@@ -159,17 +160,17 @@ namespace YahooFinanceApi.Tests
 
 
         [Theory]
-        [InlineData("SPY", "BRK-B")] // USA -5 (DST from second Sunday of Mar to first Sunday of Nov)
-        [InlineData("TD.TO", "CZX.V")] // Canada
-        [InlineData("BP.L", "VFEM.L")] // London
+        [InlineData("SPY")] // USA
+        [InlineData("TD.TO")] // Canada
+        [InlineData("BP.L")] // London
         [InlineData("AIR.PA")] // Euronext
         [InlineData("AIR.DE")] // Xetra
         [InlineData("UNITECH.BO")] // Bombay
         [InlineData("2800.HK")] // Hong Kong
         [InlineData("000001.SS")] // Shanghai
         [InlineData("2448.TW")] // Taiwan
-        [InlineData("005930.KS")] // Korea +9
-        [InlineData("BHP.AX", "ANZ.AX")] // Sydney +10 (DST from first Sunday in Oct to first Sunday in Apr)
+        [InlineData("005930.KS")] // Korea
+        [InlineData("BHP.AX")] // Sydney
         public void HistoricalDatesTest(params string[] symbols)
         {
             var from = new DateTime(2017, 9, 12);

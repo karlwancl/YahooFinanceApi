@@ -33,9 +33,7 @@ namespace YahooFinanceApi
         }
 
         public static string GetRandomString(int length)
-        {
-            const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-            return string.Join("", Enumerable.Range(0, length).Select(i => Chars[new Random().Next(Chars.Length)]));
-        }
+            => Guid.NewGuid().ToString().Substring(0, length);
+
     }
 }

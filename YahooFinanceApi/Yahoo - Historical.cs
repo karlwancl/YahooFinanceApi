@@ -14,7 +14,7 @@ namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
-        public static bool IgnoreEmptyRows = false;
+        public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 
         // Singleton
         static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -26,34 +26,31 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
-	                               ShowOption.History, 
-	                               r => r.ToCandle(),
-                                   r => r.ToFallbackCandle(),
-	                               token);
+	                               ShowOption.History,
+                                   RowExtension.ToCandle,
+                                   token);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
-                                   ShowOption.Dividend, 
-                                   r => r.ToDividendTick(), 
-                                   r => r.ToFallbackDividendTick(),
+                                   ShowOption.Dividend,
+                                   RowExtension.ToDividendTick,
                                    token);
 
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
                                    Period.Daily,
                                    ShowOption.Split,
-                                   r => r.ToSplitTick(),
-                                   r => r.ToFallbackSplitTick(),
+                                   RowExtension.ToSplitTick,
                                    token);
 
         static async Task<List<ITick>> GetTicksAsync<ITick>(
@@ -63,30 +60,23 @@ namespace YahooFinanceApi
             Period period,
             ShowOption showOption,
             Func<string[], ITick> instanceFunction,
-            Func<string[], ITick> fallbackFunction,
             CancellationToken token
             )
         {
-			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
+            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
+                // It seems CsvReader does not skip the header.
+                // Until this gets fixed:
+                csvReader.Configuration.HasHeaderRecord = true;
+                csvReader.Read();
+
                 var ticks = new List<ITick>();
+
                 while (csvReader.Read())
-				{
-                    string[] row = csvReader.Context.Record;
-                    DateTime? dateTime = null;
-                    try
-                    {
-                        dateTime = row[0].ToSpecDateTime();
-                        ticks.Add(instanceFunction(row));
-                    }
-                    catch
-                    {
-                        if (dateTime.HasValue && !IgnoreEmptyRows)
-                            ticks.Add(fallbackFunction(row));
-                    }
-				}
+                    ticks.Add(instanceFunction(csvReader.Context.Record));
+
                 return ticks;
             }
 		}
