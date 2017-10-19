@@ -14,6 +14,8 @@ namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
+        public static bool IgnoreEmptyRows = false;
+
         // Singleton
         static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
@@ -24,7 +26,7 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
@@ -32,10 +34,9 @@ namespace YahooFinanceApi
 	                               ShowOption.History, 
 	                               r => r.ToCandle(),
                                    r => r.ToFallbackCandle(),
-                                   leaveZeroIfInvalidRow,
 	                               token);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
@@ -43,10 +44,9 @@ namespace YahooFinanceApi
                                    ShowOption.Dividend, 
                                    r => r.ToDividendTick(), 
                                    r => r.ToFallbackDividendTick(),
-                                   leaveZeroIfInvalidRow,
                                    token);
 
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
@@ -54,7 +54,6 @@ namespace YahooFinanceApi
                                    ShowOption.Split,
                                    r => r.ToSplitTick(),
                                    r => r.ToFallbackSplitTick(),
-                                   leaveZeroIfInvalidRow,
                                    token);
 
         static async Task<List<ITick>> GetTicksAsync<ITick>(
@@ -65,7 +64,6 @@ namespace YahooFinanceApi
             ShowOption showOption,
             Func<string[], ITick> instanceFunction,
             Func<string[], ITick> fallbackFunction,
-            bool leaveZeroIfInvalidRow,
             CancellationToken token
             )
         {
@@ -85,7 +83,7 @@ namespace YahooFinanceApi
                     }
                     catch
                     {
-                        if (dateTime.HasValue && leaveZeroIfInvalidRow)
+                        if (dateTime.HasValue && !IgnoreEmptyRows)
                             ticks.Add(fallbackFunction(row));
                     }
 				}

@@ -38,7 +38,7 @@ namespace YahooFinanceApi.Tests
             };
             periods.ToList().ForEach(p =>
             {
-                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), DateTime.Now, p, true).Result.First();
+                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), DateTime.Now, p).Result.First();
                 Assert.Equal(dict[p], hist.Open);
             });
         }
@@ -48,7 +48,7 @@ namespace YahooFinanceApi.Tests
 		{
 			const string aaplTag = "aapl";
 
-            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true).Result;
+            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily).Result;
             var hist = hist0.First();
 			Assert.Equal(115.800003m, hist.Open);
 			Assert.Equal(116.330002m, hist.High);
@@ -97,7 +97,7 @@ namespace YahooFinanceApi.Tests
 
             Parallel.For(0, 10, n =>
             {
-                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily, true).Result.First();
+                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily).Result.First();
 				Assert.Equal(28_781_900, hist.Volume);
 			});
         }
@@ -108,7 +108,7 @@ namespace YahooFinanceApi.Tests
             var from = new DateTime(2017, 10, 10);
             var to = new DateTime(2017, 10, 12);
 
-            var hist = Yahoo.GetHistoricalAsync("C", from, to, Period.Daily, ascending: true).Result;
+            var hist = Yahoo.GetHistoricalAsync("C", from, to, Period.Daily).Result;
 
             Assert.Equal(3, hist.Count());
 
@@ -126,7 +126,7 @@ namespace YahooFinanceApi.Tests
             var from = new DateTime(2017, 10, 10);
             var to = new DateTime(2017, 10, 12);
 
-            var hist = Yahoo.GetHistoricalAsync("BA.L", from, to, Period.Daily, ascending: true).Result;
+            var hist = Yahoo.GetHistoricalAsync("BA.L", from, to, Period.Daily).Result;
 
             Assert.Equal(3, hist.Count());
 
@@ -145,7 +145,7 @@ namespace YahooFinanceApi.Tests
             var from = new DateTime(2017, 10, 11);
             var to = new DateTime(2017, 10, 13);
 
-            var hist = Yahoo.GetHistoricalAsync("2498.TW", from, to, Period.Daily, ascending: true).Result;
+            var hist = Yahoo.GetHistoricalAsync("2498.TW", from, to, Period.Daily).Result;
 
             Assert.Equal(3, hist.Count());
 
@@ -177,7 +177,7 @@ namespace YahooFinanceApi.Tests
 
             foreach (var symbol in symbols)
             {
-                var hist = Yahoo.GetHistoricalAsync(symbol, from, to, Period.Daily, ascending: true).Result;
+                var hist = Yahoo.GetHistoricalAsync(symbol, from, to, Period.Daily).Result;
 
                 Assert.Equal(3, hist.Count());
 
