@@ -2,23 +2,20 @@
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using TimeZoneConverter;
 
 namespace YahooFinanceApi
 {
     static class Helper
     {
-		public static string Name<T>(this T @enum)
-        {
-            string name = @enum.ToString();
-            if (typeof(T).GetMember(name).First().GetCustomAttribute(typeof(EnumMemberAttribute)) is EnumMemberAttribute attr && attr.IsValueSetExplicitly)
-                name = attr.Value;
-            return name;
-        }
-
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly TimeZoneInfo TzEst = TZConvert.GetTimeZoneInfo("Eastern Standard Time");    // Use TZConvert here for non-Windows platform
-        private static DateTime ConvertTimeFromEstToUtc(this DateTime dt) => TimeZoneInfo.ConvertTimeToUtc(dt, TzEst);
+
+        private static DateTime ConvertTimeFromEstToUtc(this DateTime dt) 
+            => TimeZoneInfo.ConvertTimeToUtc(dt, TzEst);
+
+        private static readonly TimeZoneInfo TzEst = TimeZoneInfo
+            .GetSystemTimeZones()
+            .Where(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York")
+            .SingleOrDefault();
 
         internal static string ToUnixTimestamp(this DateTime dt)
             => DateTime.SpecifyKind(dt, DateTimeKind.Unspecified)
@@ -27,14 +24,13 @@ namespace YahooFinanceApi
                 .TotalSeconds
                 .ToString("F0");
 
-        /*
-        internal static DateTime AdjustIfCurrency(this DateTime dt, string symbol)
+        public static string Name<T>(this T @enum)
         {
-            if (symbol.Length == 8 && symbol.EndsWith("=X", StringComparison.OrdinalIgnoreCase))
-                dt = dt.AddHours(48); // ???
-            return dt;
+            string name = @enum.ToString();
+            if (typeof(T).GetMember(name).First().GetCustomAttribute(typeof(EnumMemberAttribute)) is EnumMemberAttribute attr && attr.IsValueSetExplicitly)
+                name = attr.Value;
+            return name;
         }
-        */
 
         public static string GetRandomString(int length)
         {
