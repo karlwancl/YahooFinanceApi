@@ -25,42 +25,39 @@ namespace YahooFinanceApi
         const string CrumbTag = "crumb";
 
         public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-		    => await GetTicksAsync<Candle>(symbol, 
+		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
 	                               ShowOption.History, 
 	                               r => r.ToCandle(),
                                    r => r.ToFallbackCandle(),
-	                               ascending, 
                                    leaveZeroIfInvalidRow,
 	                               token);
 
         public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync<DividendTick>(symbol, 
+            => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend, 
                                    r => r.ToDividendTick(), 
                                    r => r.ToFallbackDividendTick(),
-                                   ascending, 
                                    leaveZeroIfInvalidRow,
                                    token);
 
         public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync<SplitTick>(symbol,
+            => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
                                    Period.Daily,
                                    ShowOption.Split,
                                    r => r.ToSplitTick(),
                                    r => r.ToFallbackSplitTick(),
-                                   ascending,
                                    leaveZeroIfInvalidRow,
                                    token);
 
-        static async Task<IList<T>> GetTicksAsync<T>(
+        static async Task<List<ITick>> GetTicksAsync<ITick>(
             string symbol,
             DateTime? startTime,
             DateTime? endTime,
@@ -68,20 +65,16 @@ namespace YahooFinanceApi
             ShowOption showOption,
             Func<string[], ITick> instanceFunction,
             Func<string[], ITick> fallbackFunction,
-            bool ascending, 
             bool leaveZeroIfInvalidRow,
             CancellationToken token
-            ) where T: ITick
+            )
         {
-            var ticks = new List<ITick>();
-            if (instanceFunction == null)
-                return ticks.Cast<T>().ToList();
-
 			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
-				while (csvReader.Read())
+                var ticks = new List<ITick>();
+                while (csvReader.Read())
 				{
                     string[] row = csvReader.Context.Record;
                     DateTime? dateTime = null;
@@ -96,7 +89,7 @@ namespace YahooFinanceApi
                             ticks.Add(fallbackFunction(row));
                     }
 				}
-                return ticks.OrderBy(tick => tick.DateTime, new DateTimeComparer(ascending)).Cast<T>().ToList();
+                return ticks;
             }
 		}
 

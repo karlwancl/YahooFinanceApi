@@ -15,7 +15,7 @@ namespace YahooFinanceApi
         private static readonly TimeZoneInfo TzEst = TimeZoneInfo
             .GetSystemTimeZones()
             .Where(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York")
-            .SingleOrDefault();
+            .Single();
 
         internal static string ToUnixTimestamp(this DateTime dt)
             => DateTime.SpecifyKind(dt, DateTimeKind.Unspecified)
