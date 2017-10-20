@@ -44,10 +44,11 @@ namespace YahooFinanceApi
                 try
                 {
                     if (string.IsNullOrEmpty(_crumb))
-                        _crumb = await CrumbUrl.WithClient(_client)
-                                               .GetAsync()
-                                               .ReceiveString()
-                                               .ConfigureAwait(false);
+                        _crumb = await CrumbUrl
+                            .WithClient(_client)
+                            .GetAsync()
+                            .ReceiveString()
+                            .ConfigureAwait(false);
 				}
                 finally
                 {
@@ -65,19 +66,19 @@ namespace YahooFinanceApi
 
         static async Task<IFlurlClient> CreateNewClientAsync()
         {
-            IFlurlClient temp = null;
+            IFlurlClient client = null;
 
             const int MaxRetryCount = 5;
             int retryCount;
             for (retryCount = 0; retryCount < MaxRetryCount; retryCount++)
             {
-                temp = new FlurlClient($"{CookieUrl}?{Helper.GetRandomString(8)}")  // Random query param to avoid cached response
+                client = new FlurlClient($"{CookieUrl}?{Helper.GetRandomString(8)}")  // Random query param to avoid cached response
                     .WithHeader(UserAgentKey, UserAgentValue)
                     .EnableCookies();   
                 
-                await temp.Request().GetAsync().ConfigureAwait(false);
+                await client.Request().GetAsync().ConfigureAwait(false);
 
-                if (temp.Cookies?.Count > 0)
+                if (client.Cookies?.Count > 0)
                     break;
 
                 await Task.Delay(100).ConfigureAwait(false);
@@ -86,7 +87,7 @@ namespace YahooFinanceApi
             if (retryCount == MaxRetryCount)
                 throw new Exception("Connection has failed, please try to connect later");
 
-            return temp;
+            return client;
         }
     }
 }

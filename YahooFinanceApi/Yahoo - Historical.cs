@@ -16,8 +16,6 @@ namespace YahooFinanceApi
     {
         public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 
-        // Singleton
-        static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
 
         const string Period1Tag = "period1";
@@ -89,7 +87,6 @@ namespace YahooFinanceApi
         {
             var (client, crumb) = await _GetClientAndCrumbAsync();
 
-            await _semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
                 return await _GetResponseStreamAsync(client, crumb).ConfigureAwait(false);
@@ -97,16 +94,12 @@ namespace YahooFinanceApi
             catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized)
             {
                 YahooClientFactory.Reset();
-                (client, crumb) = await _GetClientAndCrumbAsync();
+                (client, crumb) = await _GetClientAndCrumbAsync().ConfigureAwait(false);
                 return await _GetResponseStreamAsync(client, crumb).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
             {
                 throw new Exception("You may have used an invalid ticker, or the endpoint is invalidated", ex);
-            }
-            finally
-            {
-                _semaphoreSlim.Release();
             }
 
             #region Local Functions
@@ -128,7 +121,7 @@ namespace YahooFinanceApi
                     .SetQueryParam(EventsTag, events)
                     .SetQueryParam(CrumbTag, _crumb);
 
-                //Debug.WriteLine(url);
+                Debug.WriteLine(url);
 
                 return url
                     .WithClient(_client)
