@@ -7,7 +7,7 @@ namespace YahooFinanceApi
     {
         internal static bool IgnoreEmptyRows;
 
-        public static Candle ToCandle(this string[] row)
+        public static Candle ToCandle(string[] row)
         {
             var candle = new Candle
             {
@@ -28,7 +28,7 @@ namespace YahooFinanceApi
             return candle;
         }
 
-        public static DividendTick ToDividendTick(this string[] row)
+        public static DividendTick ToDividendTick(string[] row)
         {
             var tick = new DividendTick
             {
@@ -42,7 +42,7 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        public static SplitTick ToSplitTick(this string[] row)
+        public static SplitTick ToSplitTick(string[] row)
         {
             var tick = new SplitTick { DateTime = row[0].ToDateTime() };
 

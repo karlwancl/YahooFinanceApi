@@ -26,7 +26,7 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
+        public static async Task<IReadOnlyList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
@@ -35,7 +35,7 @@ namespace YahooFinanceApi
                                    RowExtension.ToCandle,
                                    token);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+        public static async Task<IReadOnlyList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
@@ -44,7 +44,7 @@ namespace YahooFinanceApi
                                    RowExtension.ToDividendTick,
                                    token);
 
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+        public static async Task<IReadOnlyList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
@@ -75,7 +75,11 @@ namespace YahooFinanceApi
                 var ticks = new List<ITick>();
 
                 while (csvReader.Read())
-                    ticks.Add(instanceFunction(csvReader.Context.Record));
+                {
+                    var tick = instanceFunction(csvReader.Context.Record);
+                    if (!tick.Equals(default(ITick)))
+                        ticks.Add(tick);
+                }
 
                 return ticks;
             }
