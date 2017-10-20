@@ -21,6 +21,8 @@ For traditional .NET framework user, if you find a "System.Runtime.Serialization
 ## v2.0 Breaking change (2017/10/18)
 * Removed timezone support
 * All api call now reads and returns datetime in EST instead of local timezone (Thanks for PR from @dshe)
+* Removed ascending, leaveZeroWhenInvalid parameter in historical api call (Thanks for PR from @dshe)
+* IgnoreEmptyRows property in replacement with the original leaveZeroIfInvalid parameter (Thanks for PR from @dshe)
 
 ## Supported Platforms
 * .NET Core 2.0
@@ -41,15 +43,17 @@ You can find the package through Nuget
     using YahooFinanceApi;
 
 ### Get stock quotes
-
     var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.Open, Tag.DaysHigh, Tag.DaysLow, Tag.PreviousClose).GetAsync();
     var aapl = quotes["AAPL"];
     var price = aapl[Tag.LastTradePriceOnly];
 
-### Get historical data for a stock
+### Ignore invalid rows
+    // Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement
+    Yahoo.IgnoreEmptyRows = true;
 
+### Get historical data for a stock
     // You should be able to query data from various markets including US, HK, TW
-    // (v2.0) The startTime & endTime here defaults to EST timezone
+    // The startTime & endTime here defaults to EST timezone
     var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
 
     foreach (var candle in history)
@@ -58,7 +62,6 @@ You can find the package through Nuget
     }
 
 ### Get dividend history for a stock
-
     // You should be able to query data from various markets including US, HK, TW
     var dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
     foreach (var candle in dividends)
