@@ -15,7 +15,7 @@ namespace YahooFinanceApi
         private static readonly TimeZoneInfo TzEst = TimeZoneInfo
             .GetSystemTimeZones()
             .Where(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York")
-            .SingleOrDefault();
+            .Single();
 
         internal static string ToUnixTimestamp(this DateTime dt)
             => DateTime.SpecifyKind(dt, DateTimeKind.Unspecified)
@@ -33,9 +33,7 @@ namespace YahooFinanceApi
         }
 
         public static string GetRandomString(int length)
-        {
-            const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-            return string.Join("", Enumerable.Range(0, length).Select(i => Chars[new Random().Next(Chars.Length)]));
-        }
+            => Guid.NewGuid().ToString().Substring(0, length);
+
     }
 }

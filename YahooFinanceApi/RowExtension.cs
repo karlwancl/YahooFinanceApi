@@ -5,34 +5,73 @@ namespace YahooFinanceApi
 {
     static class RowExtension
     {
-        public static Candle ToCandle(this string[] row)
-            => new Candle(row[0].ToSpecDateTime(),
-                          Convert.ToDecimal(row[1], CultureInfo.InvariantCulture),
-                          Convert.ToDecimal(row[2], CultureInfo.InvariantCulture),
-                          Convert.ToDecimal(row[3], CultureInfo.InvariantCulture),
-                          Convert.ToDecimal(row[4], CultureInfo.InvariantCulture),
-                          Convert.ToInt64(row[6], CultureInfo.InvariantCulture),
-                          Convert.ToDecimal(row[5], CultureInfo.InvariantCulture));
+        internal static bool IgnoreEmptyRows;
 
-        public static Candle ToFallbackCandle(this string[] row)
-            => new Candle(row[0].ToSpecDateTime(), 0, 0, 0, 0, 0, 0);
+        public static Candle ToCandle(this string[] row)
+        {
+            var candle = new Candle
+            {
+                DateTime      = row[0].ToDateTime(),
+                Open          = row[1].ToDecimal(),
+                High          = row[2].ToDecimal(),
+                Low           = row[3].ToDecimal(),
+                Close         = row[4].ToDecimal(),
+                AdjustedClose = row[5].ToDecimal(),
+                Volume        = row[6].ToInt64()
+            };
+
+            if (IgnoreEmptyRows &&
+                candle.Open == 0 && candle.High == 0 && candle.Low == 0 && candle.Close == 0 &&
+                candle.AdjustedClose == 0 &&  candle.Volume == 0)
+                return null;
+
+            return candle;
+        }
 
         public static DividendTick ToDividendTick(this string[] row)
-            => new DividendTick(row[0].ToSpecDateTime(), 
-                                Convert.ToDecimal(row[1], CultureInfo.InvariantCulture));
+        {
+            var tick = new DividendTick
+            {
+                DateTime = row[0].ToDateTime(),
+                Dividend = row[1].ToDecimal()
+            };
 
-        public static DividendTick ToFallbackDividendTick(this string[] row)
-            => new DividendTick(row[0].ToSpecDateTime(), 0);
+            if (IgnoreEmptyRows && tick.Dividend == 0)
+                return null;
+
+            return tick;
+        }
 
         public static SplitTick ToSplitTick(this string[] row)
-            => new SplitTick(row[0].ToSpecDateTime(),
-                             Convert.ToInt32(row[1].Split('/')[0], CultureInfo.InvariantCulture),
-                             Convert.ToInt32(row[1].Split('/')[1], CultureInfo.InvariantCulture));
+        {
+            var tick = new SplitTick { DateTime = row[0].ToDateTime() };
 
-        public static SplitTick ToFallbackSplitTick(this string[] row)
-            => new SplitTick(row[0].ToSpecDateTime(), 0, 0);
+            var split = row[1].Split('/');
+            if (split.Length == 2)
+            {
+                tick.AfterSplit  = split[0].ToDecimal();
+                tick.BeforeSplit = split[1].ToDecimal();
+            }
 
-        internal static DateTime ToSpecDateTime(this string dateTimeStr)
-            => Convert.ToDateTime(dateTimeStr, CultureInfo.InvariantCulture);
+            if (IgnoreEmptyRows && tick.AfterSplit == 0 && tick.BeforeSplit == 0)
+                return null;
+
+            return tick;
+        }
+
+        private static DateTime ToDateTime(this string str)
+            => DateTime.Parse(str, CultureInfo.InvariantCulture);
+
+        private static Decimal ToDecimal(this string str)
+        {
+            Decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out Decimal result);
+            return result;
+        }
+
+        private static Int64 ToInt64(this string str)
+        {
+            Int64.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out Int64 result);
+            return result;
+        }
     }
 }

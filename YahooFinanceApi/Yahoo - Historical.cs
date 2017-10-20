@@ -14,6 +14,8 @@ namespace YahooFinanceApi
 {
     public static partial class Yahoo
     {
+        public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
+
         // Singleton
         static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         const string QueryUrl = "https://query1.finance.yahoo.com/v7/finance/download";
@@ -24,79 +26,58 @@ namespace YahooFinanceApi
         const string EventsTag = "events";
         const string CrumbTag = "crumb";
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), Period period = Period.Daily, bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-		    => await GetTicksAsync<Candle>(symbol, 
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
+		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
-	                               ShowOption.History, 
-	                               r => r.ToCandle(),
-                                   r => r.ToFallbackCandle(),
-	                               ascending, 
-                                   leaveZeroIfInvalidRow,
-	                               token);
+	                               ShowOption.History,
+                                   RowExtension.ToCandle,
+                                   token);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync<DividendTick>(symbol, 
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+            => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
-                                   ShowOption.Dividend, 
-                                   r => r.ToDividendTick(), 
-                                   r => r.ToFallbackDividendTick(),
-                                   ascending, 
-                                   leaveZeroIfInvalidRow,
+                                   ShowOption.Dividend,
+                                   RowExtension.ToDividendTick,
                                    token);
 
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = default(DateTime?), DateTime? endTime = default(DateTime?), bool ascending = false, bool leaveZeroIfInvalidRow = false, CancellationToken token = default(CancellationToken))
-            => await GetTicksAsync<SplitTick>(symbol,
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+            => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
                                    Period.Daily,
                                    ShowOption.Split,
-                                   r => r.ToSplitTick(),
-                                   r => r.ToFallbackSplitTick(),
-                                   ascending,
-                                   leaveZeroIfInvalidRow,
+                                   RowExtension.ToSplitTick,
                                    token);
 
-        static async Task<IList<T>> GetTicksAsync<T>(
+        static async Task<List<ITick>> GetTicksAsync<ITick>(
             string symbol,
             DateTime? startTime,
             DateTime? endTime,
             Period period,
             ShowOption showOption,
             Func<string[], ITick> instanceFunction,
-            Func<string[], ITick> fallbackFunction,
-            bool ascending, 
-            bool leaveZeroIfInvalidRow,
             CancellationToken token
-            ) where T: ITick
+            )
         {
-            var ticks = new List<ITick>();
-            if (instanceFunction == null)
-                return ticks.Cast<T>().ToList();
-
-			using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
+            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
-				while (csvReader.Read())
-				{
-                    string[] row = csvReader.Context.Record;
-                    DateTime? dateTime = null;
-                    try
-                    {
-                        dateTime = row[0].ToSpecDateTime();
-                        ticks.Add(instanceFunction(row));
-                    }
-                    catch
-                    {
-                        if (dateTime.HasValue && leaveZeroIfInvalidRow)
-                            ticks.Add(fallbackFunction(row));
-                    }
-				}
-                return ticks.OrderBy(tick => tick.DateTime, new DateTimeComparer(ascending)).Cast<T>().ToList();
+                // It seems CsvReader does not skip the header.
+                // Until this gets fixed:
+                csvReader.Configuration.HasHeaderRecord = true;
+                csvReader.Read();
+
+                var ticks = new List<ITick>();
+
+                while (csvReader.Read())
+                    ticks.Add(instanceFunction(csvReader.Context.Record));
+
+                return ticks;
             }
 		}
 

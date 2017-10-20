@@ -3,15 +3,10 @@ namespace YahooFinanceApi
 {
     public class SplitTick: ITick
     {
-        public DateTime DateTime { get; }
-        public decimal BeforeSplit { get; }
-        public decimal AfterSplit { get; }
+        public DateTime DateTime { get; internal set;  }
 
-        public SplitTick(DateTime dateTime, decimal afterSplit, decimal beforeSplit)
-        {
-            AfterSplit = afterSplit;
-            BeforeSplit = beforeSplit;
-            DateTime = dateTime;
-        }
+        public decimal BeforeSplit { get; internal set; }
+
+        public decimal AfterSplit { get; internal set; }
     }
 }
