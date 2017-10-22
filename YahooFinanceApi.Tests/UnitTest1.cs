@@ -17,19 +17,16 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public void HistoricalExceptionTest()
+        public async Task HistoricalExceptionTest()
         {
-            Action @delegate = () => Yahoo.GetHistoricalAsync("aapl1234", new DateTime(2017, 1, 3), new DateTime(2017, 1, 4)).Wait();
-            var aggregateEx = Assert.Throws<AggregateException>(@delegate);
-            var innerEx = Assert.IsType<Exception>(aggregateEx.InnerException);
-            Assert.Contains("invalid ticker", innerEx.Message);
+            var exception = await Assert.ThrowsAsync<Exception>(async() =>
+                await Yahoo.GetHistoricalAsync("aapl1234", new DateTime(2017, 1, 3), new DateTime(2017, 1, 4)));
+            Assert.Contains("Not Found", exception.InnerException.Message);
         }
 
         [Fact]
         public void PeriodTest()
         {
-			const string aaplTag = "aapl";
-
             var periods = Enum.GetValues(typeof(Period)).Cast<Period>();
             var dict = new Dictionary<Period, decimal>
             {
@@ -37,19 +34,17 @@ namespace YahooFinanceApi.Tests
                 {Period.Weekly, 115.800003m},
                 {Period.Monthly, 115.800003m}
             };
-            periods.ToList().ForEach(p =>
+            periods.ToList().ForEach(async p =>
             {
-                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), DateTime.Now, p).Result.First();
-                Assert.Equal(dict[p], hist.Open);
+                var hist = await Yahoo.GetHistoricalAsync("aapl", new DateTime(2017, 1, 3), DateTime.Now, p);
+                Assert.Equal(dict[p], hist.First().Open);
             });
         }
 
 		[Fact]
-		public void HistoricalTest()
+		public async Task HistoricalTest()
 		{
-			const string aaplTag = "aapl";
-
-            var hist0 = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily).Result;
+            var hist0 = await Yahoo.GetHistoricalAsync("aapl", new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily);
             var hist = hist0.First();
 			Assert.Equal(115.800003m, hist.Open);
 			Assert.Equal(116.330002m, hist.High);
@@ -60,31 +55,28 @@ namespace YahooFinanceApi.Tests
 		}
 
         [Fact]
-        public void DividendTest()
+        public async Task DividendTest()
         {
-            const string aaplTag = "aapl";
-
-            var hist = Yahoo.GetDividendsAsync(aaplTag, new DateTime(2016, 2, 4), new DateTime(2016, 2, 5)).Result.First();
-            Assert.Equal(0.52m, hist.Dividend);
+            var hist = await Yahoo.GetDividendsAsync("aapl", new DateTime(2016, 2, 4), new DateTime(2016, 2, 5));
+            Assert.Equal(0.52m, hist.First().Dividend);
         }
 
         [Fact]
-        public void SplitTest()
+        public async Task SplitTest()
         {
-			const string aaplTag = "aapl";
+            var hist = await Yahoo.GetSplitsAsync("aapl", new DateTime(2014, 6, 8), new DateTime(2014, 6, 10));
 
-            var hist = Yahoo.GetSplitsAsync(aaplTag, new DateTime(2014, 6, 8), new DateTime(2014, 6, 10)).Result.First();
-            Assert.Equal(1, hist.BeforeSplit);
-            Assert.Equal(7, hist.AfterSplit);
+            Assert.Equal(1, hist.First().BeforeSplit);
+            Assert.Equal(7, hist.First().AfterSplit);
         }
 
         [Fact]
-        public void QuoteTest()
+        public async Task QuoteTest()
         {
 			const string aaplTag = "aapl";
 
             var tags = Enum.GetValues(typeof(Tag)).Cast<Tag>();
-            var quote = Yahoo.Symbol(aaplTag).Tag(tags.ToArray()).GetAsync().Result;
+            var quote = await Yahoo.Symbol(aaplTag).Tag(tags.ToArray()).GetAsync();
             var aapl = quote[aaplTag];
 
             Assert.Equal("Apple Inc.", aapl[Tag.Name]);
@@ -92,24 +84,29 @@ namespace YahooFinanceApi.Tests
 		}
 
         [Fact]
-        public void ParallelTest()
+        public async Task ParallelTest()
         {
-			const string aaplTag = "aapl";
+            // start 100 tasks
+            var tasks = Enumerable
+                .Range(1, 100)
+                .Select(x => Yahoo.GetHistoricalAsync("AAPL", new DateTime(2017, 1, 3), new DateTime(2017, 1, 10), Period.Daily))
+                .ToArray();
 
-            Parallel.For(0, 10, n =>
-            {
-                var hist = Yahoo.GetHistoricalAsync(aaplTag, new DateTime(2017, 1, 3), new DateTime(2017, 1, 4), Period.Daily).Result.First();
-				Assert.Equal(28_781_900, hist.Volume);
-			});
+            // wait for tasks to finish
+            await Task.WhenAll(tasks);
+
+            Assert.True(tasks
+                .Select(task => task.Result)
+                .All(hist => hist.First().Volume == 28_781_900));
         }
 
         [Fact]
-        public void HistoricalDatesTest_US()
+        public async Task HistoricalDatesTest_US()
         {
             var from = new DateTime(2017, 10, 10);
             var to = new DateTime(2017, 10, 12);
 
-            var hist = Yahoo.GetHistoricalAsync("C", from, to, Period.Daily).Result;
+            var hist = await Yahoo.GetHistoricalAsync("C", from, to, Period.Daily);
 
             Assert.Equal(3, hist.Count());
 
@@ -122,12 +119,12 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public void HistoricalDatesTest_UK()
+        public async Task HistoricalDatesTest_UK()
         {
             var from = new DateTime(2017, 10, 10);
             var to = new DateTime(2017, 10, 12);
 
-            var hist = Yahoo.GetHistoricalAsync("BA.L", from, to, Period.Daily).Result;
+            var hist = await Yahoo.GetHistoricalAsync("BA.L", from, to, Period.Daily);
 
             Assert.Equal(3, hist.Count());
 
@@ -141,12 +138,12 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public void HistoricalDatesTest_TW()
+        public async Task HistoricalDatesTest_TW()
         {
             var from = new DateTime(2017, 10, 11);
             var to = new DateTime(2017, 10, 13);
 
-            var hist = Yahoo.GetHistoricalAsync("2498.TW", from, to, Period.Daily).Result;
+            var hist = await Yahoo.GetHistoricalAsync("2498.TW", from, to, Period.Daily);
 
             Assert.Equal(3, hist.Count());
 
@@ -171,14 +168,14 @@ namespace YahooFinanceApi.Tests
         [InlineData("2448.TW")] // Taiwan
         [InlineData("005930.KS")] // Korea
         [InlineData("BHP.AX")] // Sydney
-        public void HistoricalDatesTest(params string[] symbols)
+        public async Task HistoricalDatesTest(params string[] symbols)
         {
             var from = new DateTime(2017, 9, 12);
             var to = from.AddDays(2);
 
             foreach (var symbol in symbols)
             {
-                var hist = Yahoo.GetHistoricalAsync(symbol, from, to, Period.Daily).Result;
+                var hist = await Yahoo.GetHistoricalAsync(symbol, from, to, Period.Daily);
 
                 Assert.Equal(3, hist.Count());
 
