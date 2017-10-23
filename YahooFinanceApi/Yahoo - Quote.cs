@@ -1,5 +1,4 @@
 ﻿using CsvHelper;
-using CsvHelper.Configuration;
 using Flurl;
 using Flurl.Http;
 using System.Collections.Generic;
@@ -16,10 +15,6 @@ namespace YahooFinanceApi
 
         public class Builder
         {
-            const string YahooFinanceQuoteUrl = "https://download.finance.yahoo.com/d/quotes.csv";
-            const string SymbolTag = "s";
-            const string FormatTag = "f";
-
             readonly IList<string> _symbols;
             readonly IList<Tag> _tags;
 
@@ -49,14 +44,16 @@ namespace YahooFinanceApi
 
             public async Task<IDictionary<string, IDictionary<Tag, string>>> GetAsync(CancellationToken token = default(CancellationToken))
             {
-                using (var s = await YahooFinanceQuoteUrl
-                    .SetQueryParam(SymbolTag, string.Join("+", _symbols))
-                    .SetQueryParam(FormatTag, string.Join("", _tags.Select(t => t.Name())))
+                using (var s = await 
+                    "https://download.finance.yahoo.com/d/quotes.csv"
+                    .SetQueryParam("s", string.Join("+", _symbols))
+                    .SetQueryParam("f", string.Join("", _tags.Select(t => t.Name())))
                     .GetAsync(token)
                     .ReceiveStream()
                     .ConfigureAwait(false))
+
                 using (var sr = new StreamReader(s))
-                using (var csvReader = new CsvReader(sr, new Configuration { HasHeaderRecord = false }))
+                using (var csvReader = new CsvReader(sr))
                 {
                     var output = new Dictionary<string, IDictionary<Tag, string>>();
                     int currentSymbolIndex = 0;

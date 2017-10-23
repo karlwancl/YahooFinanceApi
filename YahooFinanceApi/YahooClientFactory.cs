@@ -1,93 +1,65 @@
 ﻿﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using Flurl.Http;
 
 namespace YahooFinanceApi
 {
-    public static class YahooClientFactory
+    internal static class YahooClientFactory
     {
-        static SemaphoreSlim _clientSemaphore = new SemaphoreSlim(1, 1);
-        static SemaphoreSlim _crumbSemaphore = new SemaphoreSlim(1, 1);
+        private static IFlurlClient _client;
+        private static string _crumb;
+        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-        const string CookieUrl = "https://finance.yahoo.com";
-        const string CrumbUrl = "https://query1.finance.yahoo.com/v1/test/getcrumb";
-
-        const string UserAgentKey = "User-Agent";
-        const string UserAgentValue = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
-
-        static IFlurlClient _client;
-        public static async Task<IFlurlClient> GetClientAsync()
+        internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, CancellationToken token)
         {
-            if (_client == null)
+            await _semaphore.WaitAsync(token).ConfigureAwait(false);
+            try
             {
-                await _clientSemaphore.WaitAsync().ConfigureAwait(false);
-                try
+                if (_client == null || reset)
                 {
-                    if (_client == null)
-                        _client = await CreateNewClientAsync().ConfigureAwait(false);
-                }
-                finally
-                {
-                    _clientSemaphore.Release();
+                    _client = await CreateClientAsync(token).ConfigureAwait(false);
+                    _crumb = await GetCrumbAsync(_client, token).ConfigureAwait(false);
                 }
             }
-            return _client;
-        }
-
-        static string _crumb;
-        public static async Task<string> GetCrumbAsync()
-        {
-            if (string.IsNullOrEmpty(_crumb))
+            finally
             {
-                await _crumbSemaphore.WaitAsync().ConfigureAwait(false);
-                try
-                {
-                    if (string.IsNullOrEmpty(_crumb))
-                        _crumb = await CrumbUrl
-                            .WithClient(_client)
-                            .GetAsync()
-                            .ReceiveString()
-                            .ConfigureAwait(false);
-				}
-                finally
-                {
-                    _crumbSemaphore.Release();
-                }
+                _semaphore.Release();
             }
-            return _crumb;
+            return (_client, _crumb);
         }
 
-        public static void Reset()
+        private static async Task<IFlurlClient> CreateClientAsync(CancellationToken token)
         {
-            _client = null;
-            _crumb = null;
-        }
-
-        static async Task<IFlurlClient> CreateNewClientAsync()
-        {
-            IFlurlClient client = null;
-
             const int MaxRetryCount = 5;
-            int retryCount;
-            for (retryCount = 0; retryCount < MaxRetryCount; retryCount++)
+            for (int retryCount = 0; retryCount < MaxRetryCount; retryCount++)
             {
-                client = new FlurlClient($"{CookieUrl}?{Helper.GetRandomString(8)}")  // Random query param to avoid cached response
-                    .WithHeader(UserAgentKey, UserAgentValue)
-                    .EnableCookies();   
+                const string userAgentKey = "User-Agent";
+                const string userAgentValue = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
+
+                // random query to avoid cached response
+                var client = new FlurlClient($"https://finance.yahoo.com?{Helper.GetRandomString(8)}")
+                    .WithHeader(userAgentKey, userAgentValue)
+                    .EnableCookies();
                 
-                await client.Request().GetAsync().ConfigureAwait(false);
+                await client.Request().GetAsync(token).ConfigureAwait(false);
 
                 if (client.Cookies?.Count > 0)
-                    break;
+                    return client;
 
-                await Task.Delay(100).ConfigureAwait(false);
+                Debug.WriteLine("Failure to create client.");
+
+                await Task.Delay(100, token).ConfigureAwait(false);
             }
 
-            if (retryCount == MaxRetryCount)
-                throw new Exception("Connection has failed, please try to connect later");
-
-            return client;
+            throw new Exception("Failure to create client.");
         }
+
+        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken token)
+            => "https://query1.finance.yahoo.com/v1/test/getcrumb"
+                .WithClient(client)
+                .GetAsync(token)
+                .ReceiveString();
     }
 }

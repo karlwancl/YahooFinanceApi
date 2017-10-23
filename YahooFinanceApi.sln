@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceApi", "YahooFinanceApi\YahooFinanceApi.csproj", "{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YahooFinanceApi", "YahooFinanceApi\YahooFinanceApi.csproj", "{D0A21731-43CB-44C3-8A6C-D53F75CD2BEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YahooFinanceApi.Tests", "YahooFinanceApi.Tests\YahooFinanceApi.Tests.csproj", "{1A68EA70-E96B-4E00-95BA-83B32D884228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YahooFinanceApi.Tests", "YahooFinanceApi.Tests\YahooFinanceApi.Tests.csproj", "{1A68EA70-E96B-4E00-95BA-83B32D884228}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,5 +44,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F04630DC-D1A8-4DD0-9AF3-DBA5967F9479}
 	EndGlobalSection
 EndGlobal
