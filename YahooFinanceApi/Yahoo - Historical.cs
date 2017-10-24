@@ -15,7 +15,7 @@ namespace YahooFinanceApi
     {
         public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 
-        public static async Task<IReadOnlyList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default(CancellationToken))
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
@@ -24,7 +24,7 @@ namespace YahooFinanceApi
                                    RowExtension.ToCandle,
                                    token);
 
-        public static async Task<IReadOnlyList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
@@ -33,7 +33,7 @@ namespace YahooFinanceApi
                                    RowExtension.ToDividendTick,
                                    token);
 
-        public static async Task<IReadOnlyList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
+        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default(CancellationToken))
             => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
