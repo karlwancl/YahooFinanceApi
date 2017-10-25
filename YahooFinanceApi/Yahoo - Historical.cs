@@ -111,7 +111,7 @@ namespace YahooFinanceApi
                     .SetQueryParam("events", events)
                     .SetQueryParam("crumb", _crumb);
 
-                Debug.WriteLine(url);
+                //Debug.WriteLine(url);
 
                 return url
                     .WithClient(_client)
