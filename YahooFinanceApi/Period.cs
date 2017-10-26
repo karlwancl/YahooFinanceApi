@@ -6,8 +6,10 @@ namespace YahooFinanceApi
     {
         [EnumMember(Value = "d")]
         Daily,
+
         [EnumMember(Value = "wk")]
         Weekly,
+
         [EnumMember(Value = "mo")]
         Monthly
     }

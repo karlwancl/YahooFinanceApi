@@ -3,11 +3,11 @@ using System.Globalization;
 
 namespace YahooFinanceApi
 {
-    static class RowExtension
+    internal static class RowExtension
     {
         internal static bool IgnoreEmptyRows;
 
-        public static Candle ToCandle(string[] row)
+        internal static Candle ToCandle(string[] row)
         {
             var candle = new Candle
             {
@@ -28,7 +28,7 @@ namespace YahooFinanceApi
             return candle;
         }
 
-        public static DividendTick ToDividendTick(string[] row)
+        internal static DividendTick ToDividendTick(string[] row)
         {
             var tick = new DividendTick
             {
@@ -42,7 +42,7 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        public static SplitTick ToSplitTick(string[] row)
+        internal static SplitTick ToSplitTick(string[] row)
         {
             var tick = new SplitTick { DateTime = row[0].ToDateTime() };
 
@@ -60,7 +60,11 @@ namespace YahooFinanceApi
         }
 
         private static DateTime ToDateTime(this string str)
-            => DateTime.Parse(str, CultureInfo.InvariantCulture);
+        {
+            if (!DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
+                throw new Exception($"Could not convert '{str}' to DateTime.");
+            return dt;
+        }
 
         private static Decimal ToDecimal(this string str)
         {
