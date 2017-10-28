@@ -11,8 +11,7 @@ namespace YahooFinanceApi
 
         private static readonly TimeZoneInfo TzEst = TimeZoneInfo
             .GetSystemTimeZones()
-            .Where(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York")
-            .Single();
+            .Single(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York");
 
         private static DateTime ToUtcFrom(this DateTime dt, TimeZoneInfo tzi)
             => TimeZoneInfo.ConvertTimeToUtc(dt, tzi);

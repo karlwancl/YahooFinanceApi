@@ -63,7 +63,9 @@ namespace YahooFinanceApi
                 while (csvReader.Read())
                 {
                     var tick = instanceFunction(csvReader.Context.Record);
+#pragma warning disable RECS0017 // Possible compare of value type with 'null'
                     if (tick != null)
+#pragma warning restore RECS0017 // Possible compare of value type with 'null'
                         ticks.Add(tick);
                 }
 
@@ -100,7 +102,7 @@ namespace YahooFinanceApi
             Task<Stream> _GetResponseStreamAsync(IFlurlClient _client, string _crumb, CancellationToken _token)
             {
                 // Yahoo expects dates to be "Eastern Standard Time"
-                startTime = startTime?.FromEstToUtc() ?? new DateTime(1970, 1, 1);
+                startTime = startTime?.FromEstToUtc() ?? new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 endTime =   endTime?  .FromEstToUtc() ?? DateTime.UtcNow;
 
                 var url = "https://query1.finance.yahoo.com/v7/finance/download"
@@ -111,7 +113,7 @@ namespace YahooFinanceApi
                     .SetQueryParam("events", events)
                     .SetQueryParam("crumb", _crumb);
 
-                //Debug.WriteLine(url);
+                Debug.WriteLine(url);
 
                 return url
                     .WithClient(_client)
