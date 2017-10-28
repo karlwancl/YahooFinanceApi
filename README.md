@@ -18,11 +18,12 @@ This library is intended for personal use only, any improper use of this library
 ## Install Note
 For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
 
-## v2.0 Breaking change (2017/10/18)
-* Removed timezone support
-* All api call now reads and returns datetime in EST instead of local timezone (Thanks for PR from @dshe)
-* Removed ascending, leaveZeroWhenInvalid parameter in historical api call (Thanks for PR from @dshe)
-* IgnoreEmptyRows property in replacement with the original leaveZeroIfInvalid parameter (Thanks for PR from @dshe)
+## v2.0 Changes (2017/10/28) (Great thanks for PRs from @dshe :D)
+* Removed error-proned timezone support
+* All api call now reads and returns datetime in EST instead of local timezone.
+* Removed ascending, leaveZeroWhenInvalid parameter in historical api call.
+* IgnoreEmptyRows property in replacement with the original leaveZeroIfInvalid parameter.
+* Performance boost on async calls.
 
 ## Supported Platforms
 * .NET Core 2.0
