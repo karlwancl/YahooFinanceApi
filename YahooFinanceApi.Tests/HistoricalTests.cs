@@ -52,7 +52,6 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(116.330002m, first.High);
             Assert.Equal(114.760002m, first.Low);
             Assert.Equal(116.150002m, first.Close);
-            Assert.Equal(114.722694m, first.AdjustedClose);
             Assert.Equal(28_781_900, first.Volume);
         }
 
@@ -87,9 +86,9 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(from, results.First().DateTime);
             Assert.Equal(to, results.Last().DateTime);
 
-            Assert.Equal(75.18m, results[0].AdjustedClose);
-            Assert.Equal(74.940002m, results[1].AdjustedClose);
-            Assert.Equal(72.370003m, results[2].AdjustedClose);
+            Assert.Equal(75.18m, results[0].Close);
+            Assert.Equal(74.940002m, results[1].Close);
+            Assert.Equal(72.370003m, results[2].Close);
         }
 
         [Fact]
@@ -106,9 +105,9 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(to, results.Last().DateTime);
 
             // Don't know why Yahoo changes its historical data, the test is not passed before these changes
-            Assert.Equal(607.68573m, results[0].AdjustedClose);
-            Assert.Equal(606.207153m, results[1].AdjustedClose);
-            Assert.Equal(607.192871m, results[2].AdjustedClose);
+            Assert.Equal(616.50m, results[0].Close);
+            Assert.Equal(615.00m, results[1].Close);
+            Assert.Equal(616.00m, results[2].Close);
         }
 
         [Fact]
@@ -124,9 +123,9 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(from, results.First().DateTime);
             Assert.Equal(to, results.Last().DateTime);
 
-            Assert.Equal(71.599998m, results[0].AdjustedClose);
-            Assert.Equal(71.599998m, results[1].AdjustedClose);
-            Assert.Equal(73.099998m, results[2].AdjustedClose);
+            Assert.Equal(71.599998m, results[0].Close);
+            Assert.Equal(71.599998m, results[1].Close);
+            Assert.Equal(73.099998m, results[2].Close);
         }
 
         [Theory]
@@ -182,9 +181,9 @@ namespace YahooFinanceApi.Tests
 
             Assert.Equal(3, results.Count());
 
-            Assert.Equal(1.174164m, results[0].AdjustedClose);
-            Assert.Equal(1.181488m, results[1].AdjustedClose);
-            Assert.Equal(1.186549m, results[2].AdjustedClose);
+            Assert.Equal(1.174164m, results[0].Close);
+            Assert.Equal(1.181488m, results[1].Close);
+            Assert.Equal(1.186549m, results[2].Close);
 
             // Note: Forex seems to return date = (requested date - 1 day)
             Assert.Equal(from, results.First().DateTime.AddDays(1));
