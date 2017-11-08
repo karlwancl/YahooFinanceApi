@@ -6,13 +6,15 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
     <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>2.0.0-beta2</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
+[28/10/2017] Performance boost for async call
+[22/10/2017] Speed up historical retrieval
 [20/10/2017] Improved historical API
 [19/10/2017] Updated dependencies
 [18/10/2017] Removed timezone support. (Breaking change) All api call now reads and returns datetime in est instead of local timezone
