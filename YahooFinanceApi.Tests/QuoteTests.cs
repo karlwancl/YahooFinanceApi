@@ -23,7 +23,8 @@ namespace YahooFinanceApi.Tests
             ServicePointManager.DefaultConnectionLimit = 1000;
         }
 
-        [Fact] // this stopped working November 2017
+        /* this stopped working November 2017
+        [Fact]
         public async Task TestYahooQuotes()
         {
             const string symbol = "AAPL";
@@ -40,6 +41,7 @@ namespace YahooFinanceApi.Tests
                 Write($"{tag} {result[tag]}");
             }
         }
+        */
 
         [Fact]
         public async Task TestYahooJsonQuotes()
