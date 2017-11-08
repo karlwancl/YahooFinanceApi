@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -24,8 +23,8 @@ namespace YahooFinanceApi.Tests
             ServicePointManager.DefaultConnectionLimit = 1000;
         }
 
-        [Fact]
-        public async Task Test1()
+        [Fact] // this stopped working November 2017
+        public async Task TestYahooQuotes()
         {
             const string symbol = "AAPL";
 
@@ -41,5 +40,16 @@ namespace YahooFinanceApi.Tests
                 Write($"{tag} {result[tag]}");
             }
         }
+
+        [Fact]
+        public async Task TestYahooJsonQuotes()
+        {
+            var securities = await Yahoo.Symbol("AAPL", "C").GetJsonAsync();
+
+            Assert.Equal(2, securities.Count());
+
+            Assert.Equal("Apple Inc.", (string)securities["AAPL"]["longName"]);
+        }
+
     }
 }

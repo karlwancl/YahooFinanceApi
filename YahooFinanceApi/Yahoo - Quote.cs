@@ -1,7 +1,9 @@
 ﻿using CsvHelper;
 using Flurl;
 using Flurl.Http;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -44,14 +46,16 @@ namespace YahooFinanceApi
 
             public async Task<IDictionary<string, IDictionary<Tag, string>>> GetAsync(CancellationToken token = default(CancellationToken))
             {
-                using (var s = await 
-                    "https://download.finance.yahoo.com/d/quotes.csv"
+                var url = "https://download.finance.yahoo.com/d/quotes.csv"
                     .SetQueryParam("s", string.Join("+", _symbols))
-                    .SetQueryParam("f", string.Join("", _tags.Select(t => t.Name())))
+                    .SetQueryParam("f", string.Join("", _tags.Select(t => t.Name())));
+
+                Debug.WriteLine(url);
+
+                using (var s = await url
                     .GetAsync(token)
                     .ReceiveStream()
                     .ConfigureAwait(false))
-
                 using (var sr = new StreamReader(s))
                 using (var csvReader = new CsvReader(sr))
                 {
@@ -67,6 +71,46 @@ namespace YahooFinanceApi
                     }
                     return output;
                 }
+            }
+
+            public async Task<IDictionary<string, IDictionary<string, object>>> GetJsonAsync(CancellationToken token = default(CancellationToken))
+            {
+                if (!_symbols.Any())
+                    throw new ArgumentException("No symbols specified.");
+
+                var url = "https://query1.finance.yahoo.com/v7/finance/quote"
+                    .SetQueryParam("symbols", string.Join(",", _symbols));
+
+                Debug.WriteLine(url);
+
+                var result = await url
+                    .GetAsync(token)
+                    .ReceiveJson<dynamic>()
+                    .ConfigureAwait(false);
+
+                var quoteResponse = result["quoteResponse"];
+
+                var error = quoteResponse["error"].ToObject<string>();
+                if (error != null)
+                    throw new InvalidDataException($"Yahoo.GetJsonAsync() error: {error}");
+
+                var securities = quoteResponse["result"];
+
+                var dictionary = new Dictionary<string, IDictionary<string, object>>();
+
+                foreach (var security in securities)
+                {
+                    string symbol = security["symbol"].ToObject<string>();
+
+                    var tagData = new Dictionary<string, object>();
+
+                    foreach (var tag in security)
+                        tagData.Add(tag.Name, tag.Value.ToObject<object>());
+
+                    dictionary.Add(symbol, tagData);
+                }
+
+                return dictionary;
             }
         }
     }
