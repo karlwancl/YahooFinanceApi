@@ -18,6 +18,13 @@ This library is intended for personal use only, any improper use of this library
 ## Install Note
 For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
 
+## Important Note (2017/11/12)
+As Yahoo has terminated their csv quote service, the depending GetAsync method is no longer usable. Please consider using QueryAsync method instead.
+
+## v2.1 Changes (2017/11/12) (Great thanks again to @dshe :D)
+* GetAsync method is obsoleted since Yahoo has terminated their csv quote service
+* Added QueryAsync as a replacement of the original GetAsync method
+
 ## v2.0 Changes (2017/10/28) (Great thanks for PRs from @dshe :D)
 * Removed error-proned timezone support
 * All api call now reads and returns datetime in EST instead of local timezone.
@@ -43,10 +50,15 @@ You can find the package through Nuget
 
     using YahooFinanceApi;
 
-### Get stock quotes
+### Get stock quotes (obsoleted)
     var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.Open, Tag.DaysHigh, Tag.DaysLow, Tag.PreviousClose).GetAsync();
     var aapl = quotes["AAPL"];
     var price = aapl[Tag.LastTradePriceOnly];
+
+### Get stock quotes (v2.1 onwards)
+    var quotes = await Yahoo.Symbol("AAPL", "GOOG").QueryAsync();
+    var aapl = quotes["AAPL"];
+    var ask = aapl["ask"];  // The QueryTag will be implemented later for ease of use
 
 ### Ignore invalid rows
     // Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement

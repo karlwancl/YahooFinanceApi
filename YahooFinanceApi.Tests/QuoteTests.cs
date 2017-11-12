@@ -46,11 +46,11 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestYahooJsonQuotes()
         {
-            var securities = await Yahoo.Symbol("AAPL", "C").GetJsonAsync();
+            var securities = await Yahoo.Symbol("AAPL", "C").QueryAsync();
 
             Assert.Equal(2, securities.Count());
 
-            Assert.Equal("Apple Inc.", (string)securities["AAPL"]["longName"]);
+            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]);
         }
 
     }

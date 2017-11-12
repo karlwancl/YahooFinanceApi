@@ -33,6 +33,7 @@ namespace YahooFinanceApi
                 return new Builder(_symbols, _tags);
             }
 
+            [Obsolete("The tag method is useless now, please use Yahoo.Symbol(<symbolName>).QueryAsync()[<symbolName>][<tagName>] instead")]
             public Builder Tag(params Tag[] tags)
             {
                 foreach (var tag in tags)
@@ -44,6 +45,7 @@ namespace YahooFinanceApi
 
             internal IReadOnlyList<Tag> Tags => _tags.ToList();
 
+            [Obsolete("The service is terminated by Yahoo, please use QueryAsync instead")]
             public async Task<IDictionary<string, IDictionary<Tag, string>>> GetAsync(CancellationToken token = default(CancellationToken))
             {
                 var url = "https://download.finance.yahoo.com/d/quotes.csv"
@@ -73,7 +75,7 @@ namespace YahooFinanceApi
                 }
             }
 
-            public async Task<IDictionary<string, IDictionary<string, object>>> GetJsonAsync(CancellationToken token = default(CancellationToken))
+            public async Task<IDictionary<string, IDictionary<string, string>>> QueryAsync(CancellationToken token = default(CancellationToken))
             {
                 if (!_symbols.Any())
                     throw new ArgumentException("No symbols specified.");
@@ -96,16 +98,16 @@ namespace YahooFinanceApi
 
                 var securities = quoteResponse["result"];
 
-                var dictionary = new Dictionary<string, IDictionary<string, object>>();
+                var dictionary = new Dictionary<string, IDictionary<string, string>>();
 
                 foreach (var security in securities)
                 {
                     string symbol = security["symbol"].ToObject<string>();
 
-                    var tagData = new Dictionary<string, object>();
+                    var tagData = new Dictionary<string, string>();
 
                     foreach (var tag in security)
-                        tagData.Add(tag.Name, tag.Value.ToObject<object>());
+                        tagData.Add(tag.Name, tag.Value.ToObject<string>());
 
                     dictionary.Add(symbol, tagData);
                 }
