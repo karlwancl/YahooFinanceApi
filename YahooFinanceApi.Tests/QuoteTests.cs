@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -44,13 +45,21 @@ namespace YahooFinanceApi.Tests
         */
 
         [Fact]
-        public async Task TestYahooJsonQuotes()
+        public async Task TestYahooQueryAsync()
         {
-            var securities = await Yahoo.Symbol("AAPL", "C").QueryAsync();
+            IDictionary<string, IDictionary<string, dynamic>> securities = await Yahoo.Symbol("C", "AAPL").QueryAsync();
 
             Assert.Equal(2, securities.Count());
 
-            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]);
+            dynamic bid = securities["C"]["bid"];
+
+            dynamic x = 2 * bid; // bid must be a numeric type
+
+            double ask = securities["C"]["ask"]; // ask must be double
+
+            Assert.True(securities["C"]["tradeable"]); // inferred type
+
+            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]); // inferred type
         }
 
     }

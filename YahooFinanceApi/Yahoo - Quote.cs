@@ -75,7 +75,7 @@ namespace YahooFinanceApi
                 }
             }
 
-            public async Task<IDictionary<string, IDictionary<string, string>>> QueryAsync(CancellationToken token = default(CancellationToken))
+            public async Task<IDictionary<string, IDictionary<string, dynamic>>> QueryAsync(CancellationToken token = default(CancellationToken))
             {
                 if (!_symbols.Any())
                     throw new ArgumentException("No symbols specified.");
@@ -87,30 +87,19 @@ namespace YahooFinanceApi
 
                 var result = await url
                     .GetAsync(token)
-                    .ReceiveJson<dynamic>()
+                    .ReceiveJson() // expandoObject
                     .ConfigureAwait(false);
 
-                var quoteResponse = result["quoteResponse"];
+                var quoteResponse = result.quoteResponse;
 
-                var error = quoteResponse["error"].ToObject<string>();
+                var error = quoteResponse.error;
                 if (error != null)
                     throw new InvalidDataException($"Yahoo.GetJsonAsync() error: {error}");
 
-                var securities = quoteResponse["result"];
+                var dictionary = new Dictionary<string, IDictionary<string, dynamic>>();
 
-                var dictionary = new Dictionary<string, IDictionary<string, string>>();
-
-                foreach (var security in securities)
-                {
-                    string symbol = security["symbol"].ToObject<string>();
-
-                    var tagData = new Dictionary<string, string>();
-
-                    foreach (var tag in security)
-                        tagData.Add(tag.Name, tag.Value.ToObject<string>());
-
-                    dictionary.Add(symbol, tagData);
-                }
+                foreach (var security in quoteResponse.result)
+                    dictionary.Add(security.symbol, security);
 
                 return dictionary;
             }
