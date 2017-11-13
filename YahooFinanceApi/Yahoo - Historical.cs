@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace YahooFinanceApi
 {
-    public static partial class Yahoo
+    public partial class Yahoo
     {
         public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 

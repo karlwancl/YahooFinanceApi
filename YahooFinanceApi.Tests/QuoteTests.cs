@@ -24,30 +24,14 @@ namespace YahooFinanceApi.Tests
             ServicePointManager.DefaultConnectionLimit = 1000;
         }
 
-        /* this stopped working November 2017
         [Fact]
-        public async Task TestYahooQuotes()
+        public async Task TestYahooQuery()
         {
-            const string symbol = "AAPL";
-
-            var tags = Enum.GetValues(typeof(Tag)).Cast<Tag>();
-            var results = await Yahoo.Symbol(symbol).Tag(tags.ToArray()).GetAsync();
-            var result = results[symbol];
-
-            Assert.Equal("Apple Inc.", result[Tag.Name]);
-
-            foreach (var tag in tags)
-            {
-                Assert.True(result.ContainsKey(tag));
-                Write($"{tag} {result[tag]}");
-            }
-        }
-        */
-
-        [Fact]
-        public async Task TestYahooQueryAsync()
-        {
-            IDictionary<string, IDictionary<string, dynamic>> securities = await Yahoo.Symbol("C", "AAPL").QueryAsync();
+            IDictionary<string, IDictionary<string, dynamic>> securities =
+                await Yahoo
+                    .Symbols("C", "AAPL")
+                    .Fields("regularMarketPrice", "bid", "ask", "longName", "tradeable")
+                    .QueryAsync();
 
             Assert.Equal(2, securities.Count());
 
@@ -60,6 +44,23 @@ namespace YahooFinanceApi.Tests
             Assert.True(securities["C"]["tradeable"]); // inferred type
 
             Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]); // inferred type
+        }
+
+        [Fact]
+        public async Task TestYahooQueryArguments()
+        {
+            // no symbols
+            await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols().QueryAsync());
+            
+            // symbol not found
+            await Assert.ThrowsAsync<Flurl.Http.FlurlHttpException>(async () => await Yahoo.Symbols("invalidsymbol").QueryAsync());
+
+            // invalid field has no effect!
+            await Yahoo.Symbols("C").Fields("invalidfield").QueryAsync();
+
+            // when no fields are specified, some default fields are returned
+            await Yahoo.Symbols("C").QueryAsync();
+
         }
 
     }

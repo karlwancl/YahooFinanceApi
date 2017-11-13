@@ -11,98 +11,63 @@ using System.Threading.Tasks;
 
 namespace YahooFinanceApi
 {
-    public static partial class Yahoo
+    public partial class Yahoo
     {
-        public static Builder Symbol(params string[] symbols) => new Builder(symbols, null);
+        private IList<string> symbols, fields;
 
-        public class Builder
+        private Yahoo() { }
+
+        public static Yahoo Symbols(params string[] symbols)
         {
-            readonly IList<string> _symbols;
-            readonly IList<Tag> _tags;
+            if (symbols == null || symbols.Length == 0 || symbols.Any(x => x == null))
+                throw new ArgumentException(nameof(symbols));
 
-            internal Builder(IList<string> symbols = null, IList<Tag> tags = null)
-            {
-                _symbols = symbols ?? new List<string>();
-                _tags = tags ?? new List<Tag>();
-            }
+            return new Yahoo { symbols = symbols };
+        }
 
-            public Builder Symbol(params string[] symbols)
-            {
-                foreach (var symbol in symbols)
-                    _symbols.Add(symbol);
-                return new Builder(_symbols, _tags);
-            }
+        public Yahoo Fields(params string[] fields)
+        {
+            if (fields == null || fields.Length == 0 || fields.Any(x => x == null))
+                throw new ArgumentException(nameof(fields));
 
-            [Obsolete("The tag method is useless now, please use Yahoo.Symbol(<symbolName>).QueryAsync()[<symbolName>][<tagName>] instead")]
-            public Builder Tag(params Tag[] tags)
-            {
-                foreach (var tag in tags)
-                    _tags.Add(tag);
-                return new Builder(_symbols, _tags);
-            }
+            this.fields = fields;
 
-            internal IReadOnlyList<string> Symbols => _symbols.ToList();
+            return this;
+        }
 
-            internal IReadOnlyList<Tag> Tags => _tags.ToList();
+        public async Task<IDictionary<string, IDictionary<string, dynamic>>> 
+            QueryAsync(CancellationToken token = default(CancellationToken))
+        {
+            if (!symbols.Any())
+                throw new ArgumentException("No symbols specified.");
 
-            [Obsolete("The service is terminated by Yahoo, please use QueryAsync instead")]
-            public async Task<IDictionary<string, IDictionary<Tag, string>>> GetAsync(CancellationToken token = default(CancellationToken))
-            {
-                var url = "https://download.finance.yahoo.com/d/quotes.csv"
-                    .SetQueryParam("s", string.Join("+", _symbols))
-                    .SetQueryParam("f", string.Join("", _tags.Select(t => t.Name())));
+            var url = "https://query1.finance.yahoo.com/v7/finance/quote"
+                .SetQueryParam("symbols", string.Join(",", symbols));
 
-                Debug.WriteLine(url);
+            if (fields != null && fields.Any())
+                url = url.SetQueryParam("fields", string.Join(",", fields));
 
-                using (var s = await url
-                    .GetAsync(token)
-                    .ReceiveStream()
-                    .ConfigureAwait(false))
-                using (var sr = new StreamReader(s))
-                using (var csvReader = new CsvReader(sr))
-                {
-                    var output = new Dictionary<string, IDictionary<Tag, string>>();
-                    int currentSymbolIndex = 0;
-                    while (csvReader.Read())
-                    {
-                        var outputPerSymbol = new Dictionary<Tag, string>();
-                        var row = csvReader.Context.Record;
-                        for (int i = 0; i < _tags.Count(); i++)
-                            outputPerSymbol.Add(_tags[i], row[i]);
-                        output.Add(_symbols[currentSymbolIndex++], outputPerSymbol);
-                    }
-                    return output;
-                }
-            }
+            Debug.WriteLine(url);
 
-            public async Task<IDictionary<string, IDictionary<string, dynamic>>> QueryAsync(CancellationToken token = default(CancellationToken))
-            {
-                if (!_symbols.Any())
-                    throw new ArgumentException("No symbols specified.");
+            var result = await url
+                .GetAsync(token)
+                .ReceiveJson() // expandoObject
+                .ConfigureAwait(false);
 
-                var url = "https://query1.finance.yahoo.com/v7/finance/quote"
-                    .SetQueryParam("symbols", string.Join(",", _symbols));
+            var quoteResponse = result.quoteResponse;
 
-                Debug.WriteLine(url);
+            var error = quoteResponse.error;
+            if (error != null)
+                throw new InvalidDataException($"Yahoo.GetJsonAsync() error: {error}");
 
-                var result = await url
-                    .GetAsync(token)
-                    .ReceiveJson() // expandoObject
-                    .ConfigureAwait(false);
+            var dictionary = new Dictionary<string, IDictionary<string, dynamic>>();
 
-                var quoteResponse = result.quoteResponse;
+            foreach (var security in quoteResponse.result)
+                dictionary.Add(security.symbol, security);
 
-                var error = quoteResponse.error;
-                if (error != null)
-                    throw new InvalidDataException($"Yahoo.GetJsonAsync() error: {error}");
-
-                var dictionary = new Dictionary<string, IDictionary<string, dynamic>>();
-
-                foreach (var security in quoteResponse.result)
-                    dictionary.Add(security.symbol, security);
-
-                return dictionary;
-            }
+            return dictionary;
         }
     }
+
+
 }
