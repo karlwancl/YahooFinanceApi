@@ -33,10 +33,17 @@ namespace YahooFinanceApi.Tests
             // symbol not found
             await Assert.ThrowsAsync<Flurl.Http.FlurlHttpException>(async () => await Yahoo.Symbols("invalidsymbol").QueryAsync());
 
-            // invalid field has no effect!
+            // duplicate symbol
+            await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
+
+            // note that invalid fields have no effect!
             await Yahoo.Symbols("C").Fields("invalidfield").QueryAsync();
 
-            // when no fields are specified, some default fields are returned
+            // duplicate field
+            await Assert.ThrowsAsync<ArgumentException>(async () => 
+                await Yahoo.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).QueryAsync());
+
+            // when no fields are specified, all fields are returned, probably
             await Yahoo.Symbols("C").QueryAsync();
         }
 
@@ -45,27 +52,25 @@ namespace YahooFinanceApi.Tests
         {
             var securities = await Yahoo
                     .Symbols("C", "AAPL")
-
-                    // can use strings and/or Field enum.
+                    // Can use string field names ...
                     .Fields("Bid", "Ask", "Tradeable", "LongName")
+                    // and/or Field enums.
                     .Fields(Field.RegularMarketPrice, Field.Currency)
 
                     .QueryAsync();
 
-
             Assert.Equal(2, securities.Count());
 
+            double bid1 = securities["C"]["Bid"]; // strings => dynamic
 
-            double bid1 = securities["C"]["Bid"]; // dynamic
+            double bid2 = securities["C"][Field.Bid]; // Field enum => dynamic
 
-            double bid2 = securities["C"][Field.Bid]; // dynamic
-
-            double bid3 = securities["C"].Bid; // double
+            double bid3 = securities["C"].Bid; // property => static type
 
 
-            Assert.True(securities["C"]["tradeable"]); // inferred type
+            Assert.True(securities["C"]["tradeable"]);
 
-            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]); // inferred type
+            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]);
         }
 
         [Fact]
@@ -75,13 +80,14 @@ namespace YahooFinanceApi.Tests
 
             var security = securities.First().Value;
 
-            // This field was requested and therefore is available.
+            // This field was requested and therefore will be available.
             Assert.Equal("AAPL", security.Symbol);
 
-            // This field was not requested and therefore is not available.
+            // This field was not requested and is not available.
             Assert.Throws<KeyNotFoundException>(() => security.TwoHundredDayAverageChange);
 
-            // Some fields are available although not requested.
+            // Many fields are available even though only one was requested!
+            Assert.True(security.Fields.Count > 1);
         }
 
         [Fact]
@@ -107,14 +113,13 @@ namespace YahooFinanceApi.Tests
 
             Write(String.Format("{0}{0}Paste into class Security:{0}", Environment.NewLine));
 
-            Write("// This list was generated automatically. These names and types have defined by Yahoo.");
+            Write("// This list was generated automatically. These names and types have been defined by Yahoo.");
 
             foreach (var field in fields)
                 Write($"public {field.Value.GetType().Name} {field.Key} => Fields[\"{field.Key}\"];");
 
             Write(Environment.NewLine + ".");
         }
-
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -42,5 +43,12 @@ namespace YahooFinanceApi
 
         internal static string ToPascal(this string lowerCamel)
             => lowerCamel.Substring(0, 1).ToUpper() + lowerCamel.Substring(1);
+
+        internal static IEnumerable<string> Duplicates(this IEnumerable<string> items)
+        {
+            var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            return items.Where(item => !hashSet.Add(item));
+        }
+
     }
 }

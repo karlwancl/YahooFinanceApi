@@ -5,7 +5,7 @@ namespace YahooFinanceApi
 {
     public class Security
     {
-        public IDictionary<string, dynamic> Fields { get; internal set; }
+        public IDictionary<string, dynamic> Fields { get; private set; }
 
         // ctor
         internal Security(IDictionary<string, dynamic> fields) => Fields = fields;
@@ -13,7 +13,7 @@ namespace YahooFinanceApi
         public dynamic this[string fieldName] => Fields[fieldName.ToLowerCamel()];
         public dynamic this[Field field] => Fields[field.ToString().ToLowerCamel()];
 
-        // This list was generated automatically. These names and types have defined by Yahoo.
+        // This list was generated automatically. These names and types have been defined by Yahoo.
         public String Language => Fields["language"];
         public String QuoteType => Fields["quoteType"];
         public String QuoteSourceName => Fields["quoteSourceName"];

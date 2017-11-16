@@ -12,8 +12,8 @@ namespace YahooFinanceApi
 {
     public partial class Yahoo
     {
-        private List<string> symbols;
-        private readonly HashSet<string> fields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private string[] symbols;
+        private readonly List<string> fields = new List<string>();
 
         private Yahoo() { }
 
@@ -23,7 +23,7 @@ namespace YahooFinanceApi
             if (symbols == null || symbols.Length == 0 || symbols.Any(x => x == null))
                 throw new ArgumentException(nameof(symbols));
 
-            return new Yahoo { symbols = new List<string>(symbols) };
+            return new Yahoo { symbols = symbols };
         }
 
         public Yahoo Fields(params string[] fields)
@@ -31,7 +31,7 @@ namespace YahooFinanceApi
             if (fields == null || fields.Length == 0 || fields.Any(x => x == null))
                 throw new ArgumentException(nameof(fields));
 
-            this.fields.UnionWith(fields.Select(f => f.ToLowerCamel()));
+            this.fields.AddRange(fields);
 
             return this;
         }
@@ -41,27 +41,37 @@ namespace YahooFinanceApi
             if (fields == null || fields.Length == 0)
                 throw new ArgumentException(nameof(fields));
 
-            this.fields.UnionWith(fields.Select(f => f.ToString().ToLowerCamel()));
+            this.fields.AddRange(fields.Select(f => f.ToString()));
 
             return this;
         }
 
-        public async Task<Dictionary<string, Security>> QueryAsync(CancellationToken token = default(CancellationToken))
+        public async Task<Dictionary<string, Security>> QueryAsync(CancellationToken token = default)
         {
             if (!symbols.Any())
                 throw new ArgumentException("No symbols indicated.");
+
+            var duplicateSymbol = symbols.Duplicates().FirstOrDefault();
+            if (duplicateSymbol != null)
+                throw new ArgumentException($"Duplicate symbol: {duplicateSymbol}.");
 
             var url = "https://query1.finance.yahoo.com/v7/finance/quote"
                 .SetQueryParam("symbols", string.Join(",", symbols));
 
             if (fields.Any())
-                url = url.SetQueryParam("fields", string.Join(",", fields));
+            {
+                var duplicateField = fields.Duplicates().FirstOrDefault();
+                if (duplicateField != null)
+                    throw new ArgumentException($"Duplicate field: {duplicateField}.");
+
+                url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())));
+            }
 
             Debug.WriteLine(url);
 
             var result = await url
                 .GetAsync(token)
-                .ReceiveJson() // expandoObject
+                .ReceiveJson() // ExpandoObject
                 .ConfigureAwait(false);
 
             var quoteResponse = result.quoteResponse;
@@ -70,16 +80,17 @@ namespace YahooFinanceApi
             if (error != null)
                 throw new InvalidDataException($"QueryAsync error: {error}");
 
-            if (quoteResponse.result.Count != symbols.Count)
-                throw new InvalidDataException($"Received {quoteResponse.result.Count}/{symbols.Count} symbols.");
+            if (quoteResponse.result.Count != symbols.Count())
+                throw new InvalidDataException($"Received {quoteResponse.result.Count}/{symbols.Count()} symbols.");
 
             var securities = new Dictionary<string, Security>();
 
-            // Note that the returned symbol (result) may be different from the requested symbol (key).
-            for (var i = 0; i < symbols.Count; i++)
+            // Note that the symbol returned may be different from the symbol requested (the key).
+            for (var i = 0; i < symbols.Count(); i++)
                 securities.Add(symbols[i], new Security(quoteResponse.result[i]));
 
             return securities;
         }
+
     }
 }
