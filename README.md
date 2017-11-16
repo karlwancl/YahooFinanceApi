@@ -24,6 +24,7 @@ As Yahoo has terminated their csv quote service, the depending GetAsync method i
 ## v2.1 Changes (2017/11/12) (Great thanks again to @dshe :D)
 * GetAsync method is obsoleted since Yahoo has terminated their csv quote service
 * Added QueryAsync as a replacement of the original GetAsync method
+* Added Fields for QueryAsync method
 
 ## v2.0 Changes (2017/10/28) (Great thanks for PRs from @dshe :D)
 * Removed error-proned timezone support
@@ -50,15 +51,26 @@ You can find the package through Nuget
 
     using YahooFinanceApi;
 
-### Get stock quotes (obsoleted)
-    var quotes = await Yahoo.Symbol("AAPL", "GOOG").Tag(Tag.LastTradePriceOnly, Tag.Open, Tag.DaysHigh, Tag.DaysLow, Tag.PreviousClose).GetAsync();
-    var aapl = quotes["AAPL"];
-    var price = aapl[Tag.LastTradePriceOnly];
+### Get stock quotes
+    // You could query multiple symbols with multiple fields through the following steps:
+    var securities = await Yahoo.Symbols("AAPL", "GOOG").Fields(Field.Symbol, Field.RegularMarketPrice, Field.FiftyTwoWeekHigh).QueryAsync();
+    var aapl = securities["AAPL"];
+    var price = aapl[Field.RegularMarketPrice] // or, you could use aapl.RegularMarketPrice directly for typed-value
 
-### Get stock quotes (v2.1 onwards)
-    var quotes = await Yahoo.Symbol("AAPL", "GOOG").QueryAsync();
-    var aapl = quotes["AAPL"];
-    var ask = aapl["ask"];  // The QueryTag will be implemented later for ease of use
+### Supported fields for stock quote
+||||||
+|--|--|--|--|--|--|
+| Language | QuoteType | QuoteSourceName | Currency | MarketState | RegularMarketPrice | 
+| RegularMarketTime | RegularMarketChange | RegularMarketOpen | RegularMarketDayHigh | RegularMarketDayLow | RegularMarketVolume |
+| ShortName | FiftyTwoWeekHighChange | FiftyTwoWeekHighChangePercent | FiftyTwoWeekLow | FiftyTwoWeekHigh | DividendDate |
+| EarningsTimestamp | EarningsTimestampStart | EarningsTimestampEnd | TrailingAnnualDividendRate | TrailingPE | TrailingAnnualDividendYield | 
+| EpsTrailingTwelveMonths | EpsForward | SharesOutstanding | BookValue | RegularMarketChangePercent | RegularMarketPreviousClose | 
+| Bid | Ask | BidSize | AskSize | MessageBoardId | FullExchangeName | 
+| LongName | FinancialCurrency | AverageDailyVolume3Month | AverageDailyVolume10Day | FiftyTwoWeekLowChange | FiftyTwoWeekLowChangePercent |
+| TwoHundredDayAverageChangePercent | MarketCap | ForwardPE | PriceToBook | SourceInterval | ExchangeTimezoneName |
+| ExchangeTimezoneShortName | Market | Exchange | ExchangeDataDelayedBy | PriceHint | FiftyDayAverage |
+| FiftyDayAverageChange | FiftyDayAverageChangePercent | TwoHundredDayAverage | TwoHundredDayAverageChange | Tradeable | GmtOffSetMilliseconds |
+| Symbol |||||
 
 ### Ignore invalid rows
     // Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement
