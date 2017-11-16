@@ -47,8 +47,8 @@ namespace YahooFinanceApi.Tests
                     .Symbols("C", "AAPL")
 
                     // can use strings and/or Field enum.
-                    .Fields("bid", "ask", "tradeable", "longName")
-                    .Fields(Field.regularMarketPrice, Field.currency)
+                    .Fields("Bid", "Ask", "Tradeable", "LongName")
+                    .Fields(Field.RegularMarketPrice, Field.Currency)
 
                     .QueryAsync();
 
@@ -56,11 +56,11 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(2, securities.Count());
 
 
-            double bid1 = securities["C"]["bid"]; // dynamic
+            double bid1 = securities["C"]["Bid"]; // dynamic
 
-            double bid2 = securities["C"][Field.bid]; // dynamic
+            double bid2 = securities["C"][Field.Bid]; // dynamic
 
-            double bid3 = securities["C"].bid; // double
+            double bid3 = securities["C"].Bid; // double
 
 
             Assert.True(securities["C"]["tradeable"]); // inferred type
@@ -71,15 +71,15 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestYahooQueryNotRequested()
         {
-            var securities = await Yahoo.Symbols("AAPL").Fields(Field.symbol).QueryAsync();
+            var securities = await Yahoo.Symbols("AAPL").Fields(Field.Symbol).QueryAsync();
 
             var security = securities.First().Value;
 
             // This field was requested and therefore is available.
-            Assert.Equal("AAPL", security.symbol);
+            Assert.Equal("AAPL", security.Symbol);
 
             // This field was not requested and therefore is not available.
-            Assert.Throws<KeyNotFoundException>(() => security.twoHundredDayAverageChange);
+            Assert.Throws<KeyNotFoundException>(() => security.TwoHundredDayAverageChange);
 
             // Some fields are available although not requested.
         }

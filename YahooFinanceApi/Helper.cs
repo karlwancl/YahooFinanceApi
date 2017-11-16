@@ -37,5 +37,10 @@ namespace YahooFinanceApi
         internal static string GetRandomString(int length)
             => Guid.NewGuid().ToString().Substring(0, length);
 
+        internal static string ToLowerCamel(this string pascal)
+            => pascal.Substring(0, 1).ToLower() + pascal.Substring(1);
+
+        internal static string ToPascal(this string lowerCamel)
+            => lowerCamel.Substring(0, 1).ToUpper() + lowerCamel.Substring(1);
     }
 }
