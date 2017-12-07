@@ -67,10 +67,9 @@ namespace YahooFinanceApi
                 url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())));
             }
 
-
-            // Invalid symbols are simply ignored!
-            // Except when there are no valid symbols, when an exception os thrown.
-            // The excpetion is caught here and an empty list is returned.
+            // Invalid symbols are simply ignored by Yahoo.
+            // Unless there are no valid symbols, when an exception os thrown.
+            // The exception is caught here and an empty dictionary is returned.
             // So the number of symbols returned may be less than requested.
             // And there is no easy way to reliably identify changed symbols.
 
@@ -98,8 +97,12 @@ namespace YahooFinanceApi
 
             var securities = new Dictionary<string, Security>();
 
-            foreach (IDictionary<string, dynamic> security in quoteResponse.result)
-                securities.Add(security["symbol"], new Security(security));
+            foreach (IDictionary<string, dynamic> dictionary in quoteResponse.result)
+            {
+                // Change the Yahoo field names to start with upper case.
+                var pascalDictionary = dictionary.ToDictionary(x => x.Key.ToPascal(), x => x.Value);
+                securities.Add(pascalDictionary["Symbol"], new Security(pascalDictionary));
+            }
 
             return securities;
         }

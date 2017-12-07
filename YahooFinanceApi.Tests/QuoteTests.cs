@@ -78,9 +78,9 @@ namespace YahooFinanceApi.Tests
             double bid3 = securities["C"].Bid; // property => static type
 
 
-            Assert.True(securities["C"]["tradeable"]);
+            Assert.True(securities["C"]["Tradeable"]);
 
-            Assert.Equal("Apple Inc.", securities["AAPL"]["longName"]);
+            Assert.Equal("Apple Inc.", securities["AAPL"]["LongName"]);
         }
 
         [Fact]
@@ -100,35 +100,35 @@ namespace YahooFinanceApi.Tests
             Assert.True(security.Fields.Count > 1);
         }
 
+        private async Task<List<KeyValuePair<string,dynamic>>> GetFields()
+        {
+            var securities = await Yahoo.Symbols("C").QueryAsync();
+            return securities.Single()
+                .Value
+                .Fields
+                .OrderBy(x => x.Key)
+                .ToList();
+        }
+
         [Fact]
         public async Task MakeEnumList()
         {
-            var securities = await Yahoo.Symbols("C").QueryAsync();
-            var fields = securities.First().Value.Fields;
+            var fields = await GetFields();
 
-            Write("Paste into Field enum:" + Environment.NewLine);
-
-            Write("// This list was generated automatically. These names have been defined by Yahoo.");
-
-            Write(String.Join("," + Environment.NewLine, fields.Select(f => f.Key)));
-
-            Write(Environment.NewLine + ".");
+            Write("// Fields.cs enums. This list was generated automatically. These names have been defined by Yahoo.");
+            Write(String.Join("," + Environment.NewLine, fields.Select(x => x.Key)));
+            Write(Environment.NewLine);
         }
 
         [Fact]
         public async Task MakePropertyList()
         {
-            var securities = await Yahoo.Symbols("C").QueryAsync();
-            var fields = securities.First().Value.Fields;
+            var fields = await GetFields();
 
-            Write(String.Format("{0}{0}Paste into class Security:{0}", Environment.NewLine));
-
-            Write("// This list was generated automatically. These names and types have been defined by Yahoo.");
-
+            Write("// Security.cs: This list was generated automatically. These names and types have been defined by Yahoo.");
             foreach (var field in fields)
-                Write($"public {field.Value.GetType().Name} {field.Key} => Fields[\"{field.Key}\"];");
-
-            Write(Environment.NewLine + ".");
+                Write($"public {field.Value.GetType().Name} {field.Key} => this[\"{field.Key}\"];");
+            Write(Environment.NewLine);
         }
 
     }
