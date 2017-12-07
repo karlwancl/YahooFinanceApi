@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,19 +20,16 @@ namespace YahooFinanceApi.Tests
             // Test culture
             CultureInfo.CurrentCulture = new CultureInfo("nl-nl");
 
-            // may speed up http: implemented by application
+            // may speed up http when implemented by application
             ServicePointManager.UseNagleAlgorithm = false;
-            ServicePointManager.DefaultConnectionLimit = 1000;
+            ServicePointManager.DefaultConnectionLimit = 100;
         }
 
         [Fact]
-        public async Task TestYahooQueryArguments()
+        public async Task TestQueryArguments()
         {
             // no symbols
             await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols().QueryAsync());
-
-            // symbol not found
-            await Assert.ThrowsAsync<Flurl.Http.FlurlHttpException>(async () => await Yahoo.Symbols("invalidsymbol").QueryAsync());
 
             // duplicate symbol
             await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
@@ -43,12 +41,24 @@ namespace YahooFinanceApi.Tests
             await Assert.ThrowsAsync<ArgumentException>(async () => 
                 await Yahoo.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).QueryAsync());
 
-            // when no fields are specified, all fields are returned, probably
+            // when no fields are specified, all fields are returned, it seems
             await Yahoo.Symbols("C").QueryAsync();
         }
 
         [Fact]
-        public async Task TestYahooQuery()
+        public async Task TestInvalidSymbol()
+        {
+            // invalid symbols are ignored by Yahoo!
+
+            var result = await Yahoo.Symbols("invalidsymbol").QueryAsync();
+            Assert.Empty(result);
+
+            result = await Yahoo.Symbols("C", "invalidsymbol", "X").QueryAsync();
+            Assert.Equal(2, result.Count);
+        }
+
+        [Fact]
+        public async Task TestQuery()
         {
             var securities = await Yahoo
                     .Symbols("C", "AAPL")
@@ -74,7 +84,7 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public async Task TestYahooQueryNotRequested()
+        public async Task TestQueryNotRequested()
         {
             var securities = await Yahoo.Symbols("AAPL").Fields(Field.Symbol).QueryAsync();
 

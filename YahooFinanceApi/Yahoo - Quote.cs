@@ -46,7 +46,7 @@ namespace YahooFinanceApi
             return this;
         }
 
-        public async Task<Dictionary<string, Security>> QueryAsync(CancellationToken token = default)
+        public async Task<IDictionary<string, Security>> QueryAsync(CancellationToken token = default)
         {
             if (!symbols.Any())
                 throw new ArgumentException("No symbols indicated.");
@@ -67,12 +67,28 @@ namespace YahooFinanceApi
                 url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())));
             }
 
-            Debug.WriteLine(url);
 
-            var result = await url
-                .GetAsync(token)
-                .ReceiveJson() // ExpandoObject
-                .ConfigureAwait(false);
+            // Invalid symbols are simply ignored!
+            // Except when there are no valid symbols, when an exception os thrown.
+            // The excpetion is caught here and an empty list is returned.
+            // So the number of symbols returned may be less than requested.
+            // And there is no easy way to reliably identify changed symbols.
+
+            dynamic result = null;
+
+            try
+            {
+                result = await url
+                    .GetAsync(token)
+                    .ReceiveJson() // ExpandoObject
+                    .ConfigureAwait(false);
+            }
+            catch (FlurlHttpException ex) // when there ared no valid symbols, this exception is thrown
+            {
+                if (ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return new Dictionary<string, Security>();
+                else throw;
+            }
 
             var quoteResponse = result.quoteResponse;
 
@@ -80,14 +96,10 @@ namespace YahooFinanceApi
             if (error != null)
                 throw new InvalidDataException($"QueryAsync error: {error}");
 
-            if (quoteResponse.result.Count != symbols.Count())
-                throw new InvalidDataException($"Received {quoteResponse.result.Count}/{symbols.Count()} symbols.");
-
             var securities = new Dictionary<string, Security>();
 
-            // Note that the symbol returned may be different from the symbol requested (the key).
-            for (var i = 0; i < symbols.Count(); i++)
-                securities.Add(symbols[i], new Security(quoteResponse.result[i]));
+            foreach (IDictionary<string, dynamic> security in quoteResponse.result)
+                securities.Add(security["symbol"], new Security(security));
 
             return securities;
         }
