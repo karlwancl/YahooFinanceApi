@@ -67,11 +67,11 @@ namespace YahooFinanceApi
                 url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())));
             }
 
-            // Invalid symbols are simply ignored by Yahoo.
-            // Unless there are no valid symbols, when an exception os thrown.
-            // The exception is caught here and an empty dictionary is returned.
+            // Invalid symbols as part of a request are ignored by Yahoo.
             // So the number of symbols returned may be less than requested.
-            // And there is no easy way to reliably identify changed symbols.
+            // If there are no valid symbols, an exception is thrown by Flurl.
+            // This exception is caught (below) and an empty dictionary is returned.
+            // There seems to be no easy way to reliably identify changed symbols.
 
             dynamic result = null;
 
@@ -82,10 +82,10 @@ namespace YahooFinanceApi
                     .ReceiveJson() // ExpandoObject
                     .ConfigureAwait(false);
             }
-            catch (FlurlHttpException ex) // when there ared no valid symbols, this exception is thrown
-            {
+            catch (FlurlHttpException ex)
+            {   
                 if (ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    return new Dictionary<string, Security>();
+                    return new Dictionary<string, Security>(); // When there are no valid symbols
                 else throw;
             }
 
