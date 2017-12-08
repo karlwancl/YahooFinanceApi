@@ -12,8 +12,8 @@ namespace YahooFinanceApi
 {
     public partial class Yahoo
     {
-        private List<string> symbols;
-        private readonly HashSet<string> fields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private string[] symbols;
+        private readonly List<string> fields = new List<string>();
 
         private Yahoo() { }
 
@@ -23,7 +23,7 @@ namespace YahooFinanceApi
             if (symbols == null || symbols.Length == 0 || symbols.Any(x => x == null))
                 throw new ArgumentException(nameof(symbols));
 
-            return new Yahoo { symbols = new List<string>(symbols) };
+            return new Yahoo { symbols = symbols };
         }
 
         public Yahoo Fields(params string[] fields)
@@ -31,7 +31,7 @@ namespace YahooFinanceApi
             if (fields == null || fields.Length == 0 || fields.Any(x => x == null))
                 throw new ArgumentException(nameof(fields));
 
-            this.fields.UnionWith(fields.Select(f => f.ToLowerCamel()));
+            this.fields.AddRange(fields);
 
             return this;
         }
@@ -41,28 +41,53 @@ namespace YahooFinanceApi
             if (fields == null || fields.Length == 0)
                 throw new ArgumentException(nameof(fields));
 
-            this.fields.UnionWith(fields.Select(f => f.ToString().ToLowerCamel()));
+            this.fields.AddRange(fields.Select(f => f.ToString()));
 
             return this;
         }
 
-        public async Task<Dictionary<string, Security>> QueryAsync(CancellationToken token = default(CancellationToken))
+        public async Task<IDictionary<string, Security>> QueryAsync(CancellationToken token = default)
         {
             if (!symbols.Any())
                 throw new ArgumentException("No symbols indicated.");
+
+            var duplicateSymbol = symbols.Duplicates().FirstOrDefault();
+            if (duplicateSymbol != null)
+                throw new ArgumentException($"Duplicate symbol: {duplicateSymbol}.");
 
             var url = "https://query1.finance.yahoo.com/v7/finance/quote"
                 .SetQueryParam("symbols", string.Join(",", symbols));
 
             if (fields.Any())
-                url = url.SetQueryParam("fields", string.Join(",", fields));
+            {
+                var duplicateField = fields.Duplicates().FirstOrDefault();
+                if (duplicateField != null)
+                    throw new ArgumentException($"Duplicate field: {duplicateField}.");
 
-            Debug.WriteLine(url);
+                url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())));
+            }
 
-            var result = await url
-                .GetAsync(token)
-                .ReceiveJson() // expandoObject
-                .ConfigureAwait(false);
+            // Invalid symbols as part of a request are ignored by Yahoo.
+            // So the number of symbols returned may be less than requested.
+            // If there are no valid symbols, an exception is thrown by Flurl.
+            // This exception is caught (below) and an empty dictionary is returned.
+            // There seems to be no easy way to reliably identify changed symbols.
+
+            dynamic result = null;
+
+            try
+            {
+                result = await url
+                    .GetAsync(token)
+                    .ReceiveJson() // ExpandoObject
+                    .ConfigureAwait(false);
+            }
+            catch (FlurlHttpException ex)
+            {   
+                if (ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return new Dictionary<string, Security>(); // When there are no valid symbols
+                else throw;
+            }
 
             var quoteResponse = result.quoteResponse;
 
@@ -70,16 +95,17 @@ namespace YahooFinanceApi
             if (error != null)
                 throw new InvalidDataException($"QueryAsync error: {error}");
 
-            if (quoteResponse.result.Count != symbols.Count)
-                throw new InvalidDataException($"Received {quoteResponse.result.Count}/{symbols.Count} symbols.");
-
             var securities = new Dictionary<string, Security>();
 
-            // Note that the returned symbol (result) may be different from the requested symbol (key).
-            for (var i = 0; i < symbols.Count; i++)
-                securities.Add(symbols[i], new Security(quoteResponse.result[i]));
+            foreach (IDictionary<string, dynamic> dictionary in quoteResponse.result)
+            {
+                // Change the Yahoo field names to start with upper case.
+                var pascalDictionary = dictionary.ToDictionary(x => x.Key.ToPascal(), x => x.Value);
+                securities.Add(pascalDictionary["Symbol"], new Security(pascalDictionary));
+            }
 
             return securities;
         }
+
     }
 }

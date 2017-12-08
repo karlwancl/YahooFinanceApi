@@ -56,10 +56,10 @@ namespace YahooFinanceApi
             throw new Exception("Failure to create client.");
         }
 
-        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken token)
-            => "https://query1.finance.yahoo.com/v1/test/getcrumb"
-                .WithClient(client)
-                .GetAsync(token)
-                .ReceiveString();
+        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken token) =>
+            "https://query1.finance.yahoo.com/v1/test/getcrumb"
+            .WithClient(client)
+            .GetAsync(token)
+            .ReceiveString();
     }
 }

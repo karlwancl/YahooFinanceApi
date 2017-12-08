@@ -5,79 +5,75 @@ namespace YahooFinanceApi
 {
     public class Security
     {
-        public IDictionary<string, dynamic> Fields { get; internal set; }
+        public IDictionary<string, dynamic> Fields { get; private set; }
 
         // ctor
         internal Security(IDictionary<string, dynamic> fields) => Fields = fields;
 
-        public dynamic this[string fieldName] => Fields[fieldName.ToLowerCamel()];
-        public dynamic this[Field field] => Fields[field.ToString().ToLowerCamel()];
+        public dynamic this[string fieldName] => Fields[fieldName];
+        public dynamic this[Field field] => Fields[field.ToString()];
 
-        // This list was generated automatically. These names and types have defined by Yahoo.
-        public String Language => Fields["language"];
-        public String QuoteType => Fields["quoteType"];
-        public String QuoteSourceName => Fields["quoteSourceName"];
-        public String Currency => Fields["currency"];
-        public Boolean Tradeable => Fields["tradeable"];
-        public Double PostMarketPrice => Fields["postMarketPrice"];
-        public Double PostMarketChange => Fields["postMarketChange"];
-        public Double RegularMarketChangePercent => Fields["regularMarketChangePercent"];
-        public String FinancialCurrency => Fields["financialCurrency"];
-        public Int64 AverageDailyVolume3Month => Fields["averageDailyVolume3Month"];
-        public Int64 AverageDailyVolume10Day => Fields["averageDailyVolume10Day"];
-        public Double FiftyTwoWeekLowChange => Fields["fiftyTwoWeekLowChange"];
-        public Double FiftyTwoWeekLowChangePercent => Fields["fiftyTwoWeekLowChangePercent"];
-        public Double PostMarketChangePercent => Fields["postMarketChangePercent"];
-        public Int64 PostMarketTime => Fields["postMarketTime"];
-        public Int64 MarketCap => Fields["marketCap"];
-        public Double ForwardPE => Fields["forwardPE"];
-        public Double PriceToBook => Fields["priceToBook"];
-        public Int64 SourceInterval => Fields["sourceInterval"];
-        public Double FiftyTwoWeekHighChange => Fields["fiftyTwoWeekHighChange"];
-        public Double FiftyTwoWeekHighChangePercent => Fields["fiftyTwoWeekHighChangePercent"];
-        public Double FiftyTwoWeekLow => Fields["fiftyTwoWeekLow"];
-        public Double FiftyTwoWeekHigh => Fields["fiftyTwoWeekHigh"];
-        public Int64 DividendDate => Fields["dividendDate"];
-        public Double BookValue => Fields["bookValue"];
-        public Double FiftyDayAverage => Fields["fiftyDayAverage"];
-        public Double FiftyDayAverageChange => Fields["fiftyDayAverageChange"];
-        public Double FiftyDayAverageChangePercent => Fields["fiftyDayAverageChangePercent"];
-        public Double TwoHundredDayAverage => Fields["twoHundredDayAverage"];
-        public Double TwoHundredDayAverageChange => Fields["twoHundredDayAverageChange"];
-        public Double TwoHundredDayAverageChangePercent => Fields["twoHundredDayAverageChangePercent"];
-        public Int64 EarningsTimestamp => Fields["earningsTimestamp"];
-        public Int64 EarningsTimestampStart => Fields["earningsTimestampStart"];
-        public Int64 EarningsTimestampEnd => Fields["earningsTimestampEnd"];
-        public Double TrailingAnnualDividendRate => Fields["trailingAnnualDividendRate"];
-        public Double TrailingPE => Fields["trailingPE"];
-        public Double TrailingAnnualDividendYield => Fields["trailingAnnualDividendYield"];
-        public Double EpsTrailingTwelveMonths => Fields["epsTrailingTwelveMonths"];
-        public Double EpsForward => Fields["epsForward"];
-        public Int64 SharesOutstanding => Fields["sharesOutstanding"];
-        public String ExchangeTimezoneShortName => Fields["exchangeTimezoneShortName"];
-        public Int64 GmtOffSetMilliseconds => Fields["gmtOffSetMilliseconds"];
-        public Int64 PriceHint => Fields["priceHint"];
-        public Double RegularMarketPreviousClose => Fields["regularMarketPreviousClose"];
-        public Double Bid => Fields["bid"];
-        public Double Ask => Fields["ask"];
-        public Int64 BidSize => Fields["bidSize"];
-        public Int64 AskSize => Fields["askSize"];
-        public String MessageBoardId => Fields["messageBoardId"];
-        public String FullExchangeName => Fields["fullExchangeName"];
-        public String LongName => Fields["longName"];
-        public Double RegularMarketPrice => Fields["regularMarketPrice"];
-        public Int64 RegularMarketTime => Fields["regularMarketTime"];
-        public Double RegularMarketChange => Fields["regularMarketChange"];
-        public Double RegularMarketOpen => Fields["regularMarketOpen"];
-        public Double RegularMarketDayHigh => Fields["regularMarketDayHigh"];
-        public Double RegularMarketDayLow => Fields["regularMarketDayLow"];
-        public Int64 RegularMarketVolume => Fields["regularMarketVolume"];
-        public String ExchangeTimezoneName => Fields["exchangeTimezoneName"];
-        public String ShortName => Fields["shortName"];
-        public String Exchange => Fields["exchange"];
-        public String Market => Fields["market"];
-        public String MarketState => Fields["marketState"];
-        public Int64 ExchangeDataDelayedBy => Fields["exchangeDataDelayedBy"];
-        public String Symbol => Fields["symbol"];
+        // Security.cs: This list was generated automatically. These names and types have been defined by Yahoo.
+        public Double Ask => this["Ask"];
+        public Int64 AskSize => this["AskSize"];
+        public Int64 AverageDailyVolume10Day => this["AverageDailyVolume10Day"];
+        public Int64 AverageDailyVolume3Month => this["AverageDailyVolume3Month"];
+        public Double Bid => this["Bid"];
+        public Int64 BidSize => this["BidSize"];
+        public Double BookValue => this["BookValue"];
+        public String Currency => this["Currency"];
+        public Int64 DividendDate => this["DividendDate"];
+        public Int64 EarningsTimestamp => this["EarningsTimestamp"];
+        public Int64 EarningsTimestampEnd => this["EarningsTimestampEnd"];
+        public Int64 EarningsTimestampStart => this["EarningsTimestampStart"];
+        public Double EpsForward => this["EpsForward"];
+        public Double EpsTrailingTwelveMonths => this["EpsTrailingTwelveMonths"];
+        public String Exchange => this["Exchange"];
+        public Int64 ExchangeDataDelayedBy => this["ExchangeDataDelayedBy"];
+        public String ExchangeTimezoneName => this["ExchangeTimezoneName"];
+        public String ExchangeTimezoneShortName => this["ExchangeTimezoneShortName"];
+        public Double FiftyDayAverage => this["FiftyDayAverage"];
+        public Double FiftyDayAverageChange => this["FiftyDayAverageChange"];
+        public Double FiftyDayAverageChangePercent => this["FiftyDayAverageChangePercent"];
+        public Double FiftyTwoWeekHigh => this["FiftyTwoWeekHigh"];
+        public Double FiftyTwoWeekHighChange => this["FiftyTwoWeekHighChange"];
+        public Double FiftyTwoWeekHighChangePercent => this["FiftyTwoWeekHighChangePercent"];
+        public Double FiftyTwoWeekLow => this["FiftyTwoWeekLow"];
+        public Double FiftyTwoWeekLowChange => this["FiftyTwoWeekLowChange"];
+        public Double FiftyTwoWeekLowChangePercent => this["FiftyTwoWeekLowChangePercent"];
+        public String FinancialCurrency => this["FinancialCurrency"];
+        public Double ForwardPE => this["ForwardPE"];
+        public String FullExchangeName => this["FullExchangeName"];
+        public Int64 GmtOffSetMilliseconds => this["GmtOffSetMilliseconds"];
+        public String Language => this["Language"];
+        public String LongName => this["LongName"];
+        public String Market => this["Market"];
+        public Int64 MarketCap => this["MarketCap"];
+        public String MarketState => this["MarketState"];
+        public String MessageBoardId => this["MessageBoardId"];
+        public Int64 PriceHint => this["PriceHint"];
+        public Double PriceToBook => this["PriceToBook"];
+        public String QuoteSourceName => this["QuoteSourceName"];
+        public String QuoteType => this["QuoteType"];
+        public Double RegularMarketChange => this["RegularMarketChange"];
+        public Double RegularMarketChangePercent => this["RegularMarketChangePercent"];
+        public Double RegularMarketDayHigh => this["RegularMarketDayHigh"];
+        public Double RegularMarketDayLow => this["RegularMarketDayLow"];
+        public Double RegularMarketOpen => this["RegularMarketOpen"];
+        public Double RegularMarketPreviousClose => this["RegularMarketPreviousClose"];
+        public Double RegularMarketPrice => this["RegularMarketPrice"];
+        public Int64 RegularMarketTime => this["RegularMarketTime"];
+        public Int64 RegularMarketVolume => this["RegularMarketVolume"];
+        public Int64 SharesOutstanding => this["SharesOutstanding"];
+        public String ShortName => this["ShortName"];
+        public Int64 SourceInterval => this["SourceInterval"];
+        public String Symbol => this["Symbol"];
+        public Boolean Tradeable => this["Tradeable"];
+        public Double TrailingAnnualDividendRate => this["TrailingAnnualDividendRate"];
+        public Double TrailingAnnualDividendYield => this["TrailingAnnualDividendYield"];
+        public Double TrailingPE => this["TrailingPE"];
+        public Double TwoHundredDayAverage => this["TwoHundredDayAverage"];
+        public Double TwoHundredDayAverageChange => this["TwoHundredDayAverageChange"];
+        public Double TwoHundredDayAverageChangePercent => this["TwoHundredDayAverageChangePercent"];
     }
 }

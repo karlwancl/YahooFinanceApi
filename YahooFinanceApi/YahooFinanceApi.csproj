@@ -37,12 +37,18 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="6.0.0" />
-    <PackageReference Include="Flurl" Version="2.5.0" />
-    <PackageReference Include="Flurl.Http" Version="2.0.1" />
+    <PackageReference Include="Flurl" Version="2.5.1" />
+    <PackageReference Include="Flurl.Http" Version="2.1.0" />
   </ItemGroup>
 </Project>
