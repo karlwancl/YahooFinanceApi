@@ -12,8 +12,8 @@ namespace YahooFinanceApi.Tests
         public async Task TestSymbolsArgument()
         {
             // one symbols
-            var result = await Yahoo.Symbols("C").QueryAsync();
-            Assert.Single(result);
+            var securities = await Yahoo.Symbols("C").QueryAsync();
+            Assert.Single(securities);
 
             // no symbols
             await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols().QueryAsync());
@@ -22,27 +22,27 @@ namespace YahooFinanceApi.Tests
             await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
 
             // invalid symbols are ignored by Yahoo!
-            result = await Yahoo.Symbols("invalidsymbol").QueryAsync();
-            Assert.Empty(result);
+            securities = await Yahoo.Symbols("invalidsymbol").QueryAsync();
+            Assert.Empty(securities);
 
-            result = await Yahoo.Symbols("C", "invalidsymbol", "X").QueryAsync();
-            Assert.Equal(2, result.Count);
+            securities = await Yahoo.Symbols("C", "invalidsymbol", "X").QueryAsync();
+            Assert.Equal(2, securities.Count);
         }
 
         [Fact]
         public async Task TestFieldsArgument()
         {
             // when no fields are specified, many(all?) fields are returned!
-            var result = await Yahoo.Symbols("C").QueryAsync();
-            Assert.True(result["C"].Fields.Count > 10);
+            var securities = await Yahoo.Symbols("C").QueryAsync();
+            Assert.True(securities["C"].Fields.Count > 10);
 
             // duplicate field
             await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await Yahoo.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).QueryAsync());
 
             // invalid fields are ignored
-            result = await Yahoo.Symbols("C").Fields("invalidfield").QueryAsync();
-            var security = result["C"];
+            securities = await Yahoo.Symbols("C").Fields("invalidfield").QueryAsync();
+            var security = securities["C"];
             Assert.Throws<KeyNotFoundException>(() => security["invalidfield"]);
             Assert.False(security.Fields.TryGetValue("invalidfield", out dynamic bid));
         }

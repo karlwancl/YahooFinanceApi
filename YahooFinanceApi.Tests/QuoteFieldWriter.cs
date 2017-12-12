@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,8 +14,7 @@ namespace YahooFinanceApi.Tests
 
         private async Task<List<KeyValuePair<string, dynamic>>> GetFields()
         {
-            var securities = await Yahoo.Symbols("C").QueryAsync();
-            return securities
+            return (await Yahoo.Symbols("C").QueryAsync())
                 .Single()
                 .Value
                 .Fields

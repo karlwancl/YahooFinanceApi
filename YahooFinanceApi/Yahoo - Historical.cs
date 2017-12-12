@@ -85,7 +85,7 @@ namespace YahooFinanceApi
                 }
                 catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
                 {
-                    throw new Exception("Invalid ticker or endpoint.", ex);
+                    throw new Exception($"Invalid ticker or endpoint for symbol '{symbol}'.", ex);
                 }
                 catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized)
                 {
