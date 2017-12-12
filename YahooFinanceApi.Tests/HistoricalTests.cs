@@ -154,8 +154,8 @@ namespace YahooFinanceApi.Tests
         public async Task TestLatest()
         {
             var candles = await Yahoo.GetHistoricalAsync("C", DateTime.Now.AddDays(-7));
-            foreach (var result in candles)
-                Write($"{result.DateTime} {result.Close}");
+            foreach (var candle in candles)
+                Write($"{candle.DateTime} {candle.Close}");
         }
 
         [Fact]
@@ -166,8 +166,8 @@ namespace YahooFinanceApi.Tests
 
             var candles = await Yahoo.GetHistoricalAsync("EURUSD=X", from, to);
 
-            foreach (var result in candles)
-                Write($"{result.DateTime} {result.Close}");
+            foreach (var candle in candles)
+                Write($"{candle.DateTime} {candle.Close}");
 
             Assert.Equal(3, candles.Count());
 

@@ -2,7 +2,6 @@
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -73,11 +72,11 @@ namespace YahooFinanceApi
             // This exception is caught (below) and an empty dictionary is returned.
             // There seems to be no easy way to reliably identify changed symbols.
 
-            dynamic result = null;
+            dynamic expando = null;
 
             try
             {
-                result = await url
+                expando = await url
                     .GetAsync(token)
                     .ReceiveJson() // ExpandoObject
                     .ConfigureAwait(false);
@@ -89,15 +88,15 @@ namespace YahooFinanceApi
                 else throw;
             }
 
-            var quoteResponse = result.quoteResponse;
+            var quoteExpando = expando.quoteResponse;
 
-            var error = quoteResponse.error;
+            var error = quoteExpando.error;
             if (error != null)
                 throw new InvalidDataException($"QueryAsync error: {error}");
 
             var securities = new Dictionary<string, Security>();
 
-            foreach (IDictionary<string, dynamic> dictionary in quoteResponse.result)
+            foreach (IDictionary<string, dynamic> dictionary in quoteExpando.result)
             {
                 // Change the Yahoo field names to start with upper case.
                 var pascalDictionary = dictionary.ToDictionary(x => x.Key.ToPascal(), x => x.Value);
