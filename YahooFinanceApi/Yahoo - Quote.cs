@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace YahooFinanceApi
 {
-    public partial class Yahoo
+    public sealed partial class Yahoo
     {
         private string[] symbols;
         private readonly List<string> fields = new List<string>();
@@ -46,7 +46,7 @@ namespace YahooFinanceApi
             return this;
         }
 
-        public async Task<IDictionary<string, Security>> QueryAsync(CancellationToken token = default)
+        public async Task<IReadOnlyDictionary<string, Security>> QueryAsync(CancellationToken token = default)
         {
             if (!symbols.Any())
                 throw new ArgumentException("No symbols indicated.");

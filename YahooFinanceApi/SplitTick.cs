@@ -2,7 +2,7 @@
 
 namespace YahooFinanceApi
 {
-    public class SplitTick: ITick
+    public sealed class SplitTick : ITick
     {
         public DateTime DateTime { get; internal set;  }
 

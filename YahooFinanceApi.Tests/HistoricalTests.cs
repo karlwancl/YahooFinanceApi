@@ -9,7 +9,7 @@ namespace YahooFinanceApi.Tests
 {
     public class Historical
     {
-        protected readonly Action<string> Write;
+        private readonly Action<string> Write;
         public Historical(ITestOutputHelper output) => Write = output.WriteLine;
 
         [Fact]

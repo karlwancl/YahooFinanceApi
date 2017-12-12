@@ -5,10 +5,10 @@ namespace YahooFinanceApi
 {
     public class Security
     {
-        public IDictionary<string, dynamic> Fields { get; private set; }
+        public IReadOnlyDictionary<string, dynamic> Fields { get; private set; }
 
         // ctor
-        internal Security(IDictionary<string, dynamic> fields) => Fields = fields;
+        internal Security(IReadOnlyDictionary<string, dynamic> fields) => Fields = fields;
 
         public dynamic this[string fieldName] => Fields[fieldName];
         public dynamic this[Field field] => Fields[field.ToString()];

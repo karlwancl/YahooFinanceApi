@@ -11,36 +11,36 @@ using System.Diagnostics;
 
 namespace YahooFinanceApi
 {
-    public partial class Yahoo
+    public sealed partial class Yahoo
     {
         public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 
-        public static async Task<IList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default)
+        public static async Task<IReadOnlyList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default)
 		    => await GetTicksAsync(symbol, 
 	                               startTime, 
 	                               endTime, 
 	                               period, 
 	                               ShowOption.History,
                                    RowExtension.ToCandle,
-                                   token);
+                                   token).ConfigureAwait(false);
 
-        public static async Task<IList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
+        public static async Task<IReadOnlyList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
             => await GetTicksAsync(symbol, 
                                    startTime, 
                                    endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend,
                                    RowExtension.ToDividendTick,
-                                   token);
+                                   token).ConfigureAwait(false);
 
-        public static async Task<IList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
+        public static async Task<IReadOnlyList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
             => await GetTicksAsync(symbol,
                                    startTime,
                                    endTime,
                                    Period.Daily,
                                    ShowOption.Split,
                                    RowExtension.ToSplitTick,
-                                   token);
+                                   token).ConfigureAwait(false);
 
         private static async Task<List<ITick>> GetTicksAsync<ITick>(
             string symbol,
