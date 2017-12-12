@@ -2,7 +2,7 @@
 
 namespace YahooFinanceApi
 {
-    public class DividendTick: ITick
+    public sealed class DividendTick : ITick
     {
         public DateTime DateTime { get; internal set; }
 
