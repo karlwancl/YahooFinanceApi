@@ -13,7 +13,7 @@
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
-    <PackageReleaseNotes>
+    <PackageReleaseNotes>[16/9/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
 [12/12/2017] Fixed quote property case handling, improved tests
 [16/11/2017] Added Fields for newly added QueryAsync method
 [12/11/2017] Added QueryAsync method as a replacement of the original GetAsync method
@@ -37,7 +37,7 @@
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
@@ -49,7 +49,7 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="6.0.2" />
+    <PackageReference Include="CsvHelper" Version="7.1.1" />
     <PackageReference Include="Flurl" Version="2.5.2" />
     <PackageReference Include="Flurl.Http" Version="2.1.0" />
   </ItemGroup>
