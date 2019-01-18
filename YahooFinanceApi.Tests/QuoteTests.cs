@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -72,6 +73,33 @@ namespace YahooFinanceApi.Tests
 
             Assert.True(securities["C"][Field.Tradeable]);
             Assert.Equal("Apple Inc.", securities["AAPL"]["LongName"]);
+        }
+
+        [Fact]
+        public async Task TestManySymbols()
+        {
+            var symbols = File.ReadAllLines(@"..\..\..\symbols.txt")
+                .Where(line => !line.StartsWith("#"))
+                .Take(1500)
+                .ToArray();
+
+            var securities = await Yahoo.Symbols(symbols).QueryAsync();
+        }
+
+        [Fact]
+        public async Task TestRegularMarketTime()
+        {
+            //string symbol = "BBRY"; // changed symbol is sometimes ignored!
+            string symbol = "ORCL"; // changed symbol is sometimes ignored!
+
+            IReadOnlyDictionary<string, Security> securities = await Yahoo.Symbols(symbol).QueryAsync();
+
+            Security security = securities[symbol];
+
+            DateTime utc = security.RegularMarketTime.FromUnixTimeSeconds();
+
+            //var ttt = utc.ToLocalTimeIn("Eastern Standard Time");
+            ;
         }
 
     }

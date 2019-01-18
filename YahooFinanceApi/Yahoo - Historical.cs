@@ -15,44 +15,43 @@ namespace YahooFinanceApi
     {
         public static bool IgnoreEmptyRows { set { RowExtension.IgnoreEmptyRows = value; } }
 
-        public static async Task<IReadOnlyList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken token = default)
+        public static async Task<IReadOnlyList<Candle>> GetHistoricalAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, Period period = Period.Daily, CancellationToken ct = default)
 		    => await GetTicksAsync(symbol, 
-	                               startTime, 
-	                               endTime, 
+	                               startTime, endTime, 
 	                               period, 
 	                               ShowOption.History,
                                    RowExtension.ToCandle,
-                                   token).ConfigureAwait(false);
+                                   ct)
+                            .ConfigureAwait(false);
 
-        public static async Task<IReadOnlyList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
+        public static async Task<IReadOnlyList<DividendTick>> GetDividendsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken ct = default)
             => await GetTicksAsync(symbol, 
-                                   startTime, 
-                                   endTime, 
+                                   startTime, endTime, 
                                    Period.Daily, 
                                    ShowOption.Dividend,
                                    RowExtension.ToDividendTick,
-                                   token).ConfigureAwait(false);
+                                   ct)
+                            .ConfigureAwait(false);
 
-        public static async Task<IReadOnlyList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken token = default)
+        public static async Task<IReadOnlyList<SplitTick>> GetSplitsAsync(string symbol, DateTime? startTime = null, DateTime? endTime = null, CancellationToken ct = default)
             => await GetTicksAsync(symbol,
-                                   startTime,
-                                   endTime,
+                                   startTime, endTime,
                                    Period.Daily,
                                    ShowOption.Split,
                                    RowExtension.ToSplitTick,
-                                   token).ConfigureAwait(false);
+                                   ct)
+                            .ConfigureAwait(false);
 
         private static async Task<List<ITick>> GetTicksAsync<ITick>(
             string symbol,
-            DateTime? startTime,
-            DateTime? endTime,
+            DateTime? startTime, DateTime? endTime,
             Period period,
             ShowOption showOption,
             Func<string[], ITick> instanceFunction,
-            CancellationToken token
+            CancellationToken ct
             )
         {
-            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
+            using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), ct).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
 			using (var csvReader = new CsvReader(sr))
 			{
@@ -73,15 +72,15 @@ namespace YahooFinanceApi
             }
 		}
 
-        private static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken token)
+        private static async Task<Stream> GetResponseStreamAsync(string symbol, DateTime? startTime, DateTime? endTime, Period period, string events, CancellationToken ct)
         {
             bool reset = false;
             while (true)
             {
                 try
                 {
-                    var (client, crumb) = await YahooClientFactory.GetClientAndCrumbAsync(reset, token).ConfigureAwait(false);
-                    return await _GetResponseStreamAsync(client, crumb, token).ConfigureAwait(false);
+                    var (client, crumb) = await YahooClientFactory.GetClientAndCrumbAsync(reset, ct).ConfigureAwait(false);
+                    return await _GetResponseStreamAsync(client, crumb, ct).ConfigureAwait(false);
                 }
                 catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
                 {

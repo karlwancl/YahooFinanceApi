@@ -6,10 +6,8 @@ using System.Runtime.Serialization;
 
 namespace YahooFinanceApi
 {
-    internal static class Helper
+    public static class Helper
     {
-        private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
         private static readonly TimeZoneInfo TzEst = TimeZoneInfo
             .GetSystemTimeZones()
             .Single(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York");
@@ -22,10 +20,13 @@ namespace YahooFinanceApi
                .ToUtcFrom(TzEst);
 
         internal static string ToUnixTimestamp(this DateTime dt) =>
-            DateTime.SpecifyKind(dt, DateTimeKind.Utc)
-                .Subtract(Epoch)
-                .TotalSeconds
-                .ToString("F0");
+            new DateTimeOffset(DateTime.SpecifyKind(dt, DateTimeKind.Utc)).ToUnixTimeSeconds().ToString("F0");
+
+        public static DateTime FromUnixTimeSeconds(this long seconds) =>
+            DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime;
+
+        internal static DateTime ToLocalTimeIn(this DateTime dt, string tzId) =>
+            TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dt, tzId);
 
         internal static string Name<T>(this T @enum)
         {

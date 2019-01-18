@@ -12,15 +12,15 @@ namespace YahooFinanceApi
         private static string _crumb;
         private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-        internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, CancellationToken token)
+        internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, CancellationToken ct)
         {
-            await _semaphore.WaitAsync(token).ConfigureAwait(false);
+            await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 if (_client == null || reset)
                 {
-                    _client = await CreateClientAsync(token).ConfigureAwait(false);
-                    _crumb = await GetCrumbAsync(_client, token).ConfigureAwait(false);
+                    _client = await CreateClientAsync(ct).ConfigureAwait(false);
+                    _crumb = await GetCrumbAsync(_client, ct).ConfigureAwait(false);
                 }
             }
             finally
@@ -30,7 +30,7 @@ namespace YahooFinanceApi
             return (_client, _crumb);
         }
 
-        private static async Task<IFlurlClient> CreateClientAsync(CancellationToken token)
+        private static async Task<IFlurlClient> CreateClientAsync(CancellationToken ct)
         {
             const int MaxRetryCount = 5;
             for (int retryCount = 0; retryCount < MaxRetryCount; retryCount++)
@@ -43,23 +43,23 @@ namespace YahooFinanceApi
                     .WithHeader(userAgentKey, userAgentValue)
                     .EnableCookies();
                 
-                await client.Request().GetAsync(token).ConfigureAwait(false);
+                await client.Request().GetAsync(ct).ConfigureAwait(false);
 
                 if (client.Cookies?.Count > 0)
                     return client;
 
                 Debug.WriteLine("Failure to create client.");
 
-                await Task.Delay(100, token).ConfigureAwait(false);
+                await Task.Delay(100, ct).ConfigureAwait(false);
             }
 
             throw new Exception("Failure to create client.");
         }
 
-        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken token) =>
+        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken ct) =>
             "https://query1.finance.yahoo.com/v1/test/getcrumb"
             .WithClient(client)
-            .GetAsync(token)
+            .GetAsync(ct)
             .ReceiveString();
     }
 }

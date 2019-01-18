@@ -49,8 +49,8 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="6.0.2" />
-    <PackageReference Include="Flurl" Version="2.5.2" />
-    <PackageReference Include="Flurl.Http" Version="2.1.0" />
+    <PackageReference Include="CsvHelper" Version="12.1.1" />
+    <PackageReference Include="Flurl" Version="2.8.0" />
+    <PackageReference Include="Flurl.Http" Version="2.4.0" />
   </ItemGroup>
 </Project>

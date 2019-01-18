@@ -45,7 +45,7 @@ namespace YahooFinanceApi
             return this;
         }
 
-        public async Task<IReadOnlyDictionary<string, Security>> QueryAsync(CancellationToken token = default)
+        public async Task<IReadOnlyDictionary<string, Security>> QueryAsync(CancellationToken ct = default)
         {
             if (!symbols.Any())
                 throw new ArgumentException("No symbols indicated.");
@@ -70,14 +70,14 @@ namespace YahooFinanceApi
             // So the number of symbols returned may be less than requested.
             // If there are no valid symbols, an exception is thrown by Flurl.
             // This exception is caught (below) and an empty dictionary is returned.
-            // There seems to be no easy way to reliably identify changed symbols.
+            // There seems to be no easy way to identify changed symbols.
 
             dynamic expando = null;
 
             try
             {
                 expando = await url
-                    .GetAsync(token)
+                    .GetAsync(ct)
                     .ReceiveJson() // ExpandoObject
                     .ConfigureAwait(false);
             }
@@ -90,9 +90,8 @@ namespace YahooFinanceApi
 
             var quoteExpando = expando.quoteResponse;
 
-            var error = quoteExpando.error;
-            if (error != null)
-                throw new InvalidDataException($"QueryAsync error: {error}");
+            if (quoteExpando.error != null)
+                throw new InvalidDataException($"QueryAsync error: {quoteExpando.error}");
 
             var securities = new Dictionary<string, Security>();
 

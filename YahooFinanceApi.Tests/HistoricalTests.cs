@@ -60,8 +60,8 @@ namespace YahooFinanceApi.Tests
         {
             var splits = await Yahoo.GetSplitsAsync("AAPL", new DateTime(2014, 6, 8), new DateTime(2014, 6, 10));
 
-            Assert.Equal(1, splits.First().BeforeSplit);
-            Assert.Equal(7, splits.First().AfterSplit);
+            Assert.Equal(7, splits.First().BeforeSplit);
+            Assert.Equal(1, splits.First().AfterSplit);
         }
 
         [Fact]
