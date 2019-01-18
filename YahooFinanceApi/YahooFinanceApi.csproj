@@ -6,7 +6,7 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
     <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>2.1.0-beta1</VersionPrefix>
+    <VersionPrefix>2.1.0</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -37,7 +37,7 @@
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.1.0-beta2</Version>
+    <Version>2.1.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
