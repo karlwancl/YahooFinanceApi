@@ -64,6 +64,10 @@ namespace YahooFinanceApi
         public Double RegularMarketPrice => this["RegularMarketPrice"];
         public Int64 RegularMarketTime => this["RegularMarketTime"];
         public Int64 RegularMarketVolume => this["RegularMarketVolume"];
+        public Double PostMarketChange => this["PostMarketChange"];
+        public Double PostMarketChangePercent => this["PostMarketChangePercent"];
+        public Double PostMarketPrice => this["PostMarketPrice"];
+        public Int64 PostMarketTime => this["PostMarketTime"];
         public Int64 SharesOutstanding => this["SharesOutstanding"];
         public String ShortName => this["ShortName"];
         public Int64 SourceInterval => this["SourceInterval"];
