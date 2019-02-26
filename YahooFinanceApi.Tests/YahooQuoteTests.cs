@@ -7,26 +7,27 @@ using Xunit;
 
 namespace YahooFinanceApi.Tests
 {
-    public class QuotesTest
+    public class YahooQuotesTest
     {
         [Fact]
         public async Task TestSymbolsArgument()
         {
-            // one symbols
-            var securities = await Yahoo.Symbols("C").QueryAsync();
-            Assert.Single(securities);
-
             // no symbols
-            await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols().QueryAsync());
+            await Assert.ThrowsAsync<ArgumentException>(async () => await YahooQuotes.Symbols().GetAsync());
+
+            // some symbols
+            var securities = await YahooQuotes.Symbols("C", "AAPL").GetAsync();
+            Assert.Equal(2, securities.Count);
 
             // duplicate symbol
-            await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
+            await Assert.ThrowsAsync<ArgumentException>(async () => await YahooQuotes.Symbols("C", "A", "C").GetAsync());
 
             // invalid symbols are ignored by Yahoo!
-            securities = await Yahoo.Symbols("invalidsymbol").QueryAsync();
+            securities = await YahooQuotes.Symbols("invalidsymbol").GetAsync();
             Assert.Empty(securities);
 
-            securities = await Yahoo.Symbols("C", "invalidsymbol", "X").QueryAsync();
+            // invalid symbols are ignored by Yahoo!
+            securities = await YahooQuotes.Symbols("C", "invalidsymbol", "X").GetAsync();
             Assert.Equal(2, securities.Count);
         }
 
@@ -34,15 +35,15 @@ namespace YahooFinanceApi.Tests
         public async Task TestFieldsArgument()
         {
             // when no fields are specified, many(all?) fields are returned!
-            var securities = await Yahoo.Symbols("C").QueryAsync();
+            var securities = await YahooQuotes.Symbols("C").GetAsync();
             Assert.True(securities["C"].Fields.Count > 10);
 
             // duplicate field
             await Assert.ThrowsAsync<ArgumentException>(async () =>
-                await Yahoo.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).QueryAsync());
+                await YahooQuotes.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).GetAsync());
 
             // invalid fields are ignored
-            securities = await Yahoo.Symbols("C").Fields("invalidfield").QueryAsync();
+            securities = await YahooQuotes.Symbols("C").Fields("invalidfield").GetAsync();
             var security = securities["C"];
             Assert.Throws<KeyNotFoundException>(() => security["invalidfield"]);
             Assert.False(security.Fields.TryGetValue("invalidfield", out dynamic bid));
@@ -51,13 +52,13 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestQuery()
         {
-            var securities = await Yahoo
+            var securities = await YahooQuotes
                 .Symbols("C", "AAPL")
                 // Can use string field names:
                 .Fields("Bid", "Ask", "Tradeable", "LongName")
                 // and/or field enums:
                 .Fields(Field.RegularMarketPrice, Field.Currency)
-                .QueryAsync();
+                .GetAsync();
 
             Assert.Equal(2, securities.Count());
             var security = securities["C"];
@@ -80,25 +81,32 @@ namespace YahooFinanceApi.Tests
         {
             var symbols = File.ReadAllLines(@"..\..\..\symbols.txt")
                 .Where(line => !line.StartsWith("#"))
-                .Take(1500)
+                .Take(100)
                 .ToArray();
 
-            var securities = await Yahoo.Symbols(symbols).QueryAsync();
+            // The length limit for a URI depends on the browser and is around 5,000 characters.
+            // Exception.Message.StartsWith("Invalid URI: The Uri string is too long.");
+            // Flurl could support longer URLs but it does not.
+
+            var securities = await YahooQuotes.Symbols(symbols).GetAsync();
         }
 
         [Fact]
         public async Task TestRegularMarketTime()
         {
             //string symbol = "BBRY"; // changed symbol is sometimes ignored!
-            string symbol = "ORCL"; // changed symbol is sometimes ignored!
+            string symbol = "ORCL";
 
-            IReadOnlyDictionary<string, Security> securities = await Yahoo.Symbols(symbol).QueryAsync();
-
+            IReadOnlyDictionary<string, Security> securities = await YahooQuotes.Symbols(symbol).GetAsync();
             Security security = securities[symbol];
 
+            // RegularMarketTime is probably the time of the last price. 
+            // When not during regular market hours, the time is the time og the last trade (when RTH closed)
             DateTime utc = security.RegularMarketTime.FromUnixTimeSeconds();
+            var est = utc.ToLocalTimeIn("Eastern Standard Time");
 
-            //var ttt = utc.ToLocalTimeIn("Eastern Standard Time");
+            var exchange = security.ExchangeTimezoneName;
+
             ;
         }
 

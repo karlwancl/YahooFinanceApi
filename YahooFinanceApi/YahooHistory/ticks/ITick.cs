@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace YahooFinanceApi
 {
     public interface ITick
