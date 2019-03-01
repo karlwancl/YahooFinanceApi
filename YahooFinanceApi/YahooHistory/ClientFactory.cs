@@ -39,7 +39,7 @@ namespace YahooFinanceApi
                 const string userAgentValue = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
 
                 // random query to avoid cached response
-                var client = new FlurlClient($"https://finance.yahoo.com?{Helper.GetRandomString(8)}")
+                var client = new FlurlClient($"https://finance.yahoo.com?{Utility.GetRandomString(8)}")
                     .WithHeader(userAgentKey, userAgentValue)
                     .EnableCookies();
                 

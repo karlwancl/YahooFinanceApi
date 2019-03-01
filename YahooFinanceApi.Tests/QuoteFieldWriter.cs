@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CSharp;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 
 namespace YahooFinanceApi.Tests
 {
@@ -14,9 +17,7 @@ namespace YahooFinanceApi.Tests
 
         private async Task<List<KeyValuePair<string, dynamic>>> GetFields()
         {
-            return (await YahooQuotes.Symbols("C").GetAsync())
-                .Single()
-                .Value
+            return (await new YahooQuotes().GetAsync("C"))
                 .Fields
                 .OrderBy(x => x.Key)
                 .ToList();
@@ -52,6 +53,8 @@ namespace YahooFinanceApi.Tests
             var combinedList = currentList.ToList();
             combinedList.AddRange(newList);
             combinedList = combinedList.Distinct().OrderBy(s => s).ToList();
+
+            Write("Field updates:");
 
             foreach (var item in combinedList)
             {

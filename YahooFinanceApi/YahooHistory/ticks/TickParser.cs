@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
+using NodaTime;
+using NodaTime.Text;
 
 namespace YahooFinanceApi
 {
     public static class TickParser
     {
+        private static readonly LocalDatePattern pattern = LocalDatePattern.CreateWithInvariantCulture("yyyy-MM-dd");
         public static bool IgnoreEmptyRows { get; set; }
 
         internal static string GetParamFromType<ITick>()
@@ -42,7 +46,7 @@ namespace YahooFinanceApi
         {
             var tick = new HistoryTick
             {
-                DateTime      = row[0].ToDateTime(),
+                Date          = row[0].ToLocalDate(),
                 Open          = row[1].ToDecimal(),
                 High          = row[2].ToDecimal(),
                 Low           = row[3].ToDecimal(),
@@ -63,7 +67,7 @@ namespace YahooFinanceApi
         {
             var tick = new DividendTick
             {
-                DateTime = row[0].ToDateTime(),
+                Date     = row[0].ToLocalDate(),
                 Dividend = row[1].ToDecimal()
             };
 
@@ -75,7 +79,7 @@ namespace YahooFinanceApi
 
         private static SplitTick ToSplitTick(string[] row)
         {
-            var tick = new SplitTick { DateTime = row[0].ToDateTime() };
+            var tick = new SplitTick { Date = row[0].ToLocalDate() };
 
             var split = row[1].Split('/');
             if (split.Length == 2)
@@ -90,22 +94,31 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        private static DateTime ToDateTime(this string str)
+        private static LocalDate ToLocalDate(this string str)
         {
-            if (!DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
-                throw new Exception($"Could not convert '{str}' to DateTime.");
-            return dt;
+            var result = pattern.Parse(str);
+            return result.Success ? result.Value : throw new Exception($"Could not convert '{str}' to LocalDate.", result.Exception);
         }
 
         private static decimal ToDecimal(this string str)
         {
-            decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result);
+            if (str == "null")
+                return 0M;
+
+            if (!decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+                throw new Exception($"Could not convert '{str}' to Decimal.");
+
             return result;
         }
 
         private static long ToInt64(this string str)
         {
-            long.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out long result);
+            if (str == "null")
+                return 0L;
+
+            if (!long.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out long result))
+                throw new Exception($"Could not convert '{str}' to Int64.");
+
             return result;
         }
     }

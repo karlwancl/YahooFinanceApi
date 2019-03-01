@@ -1,10 +1,10 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace YahooFinanceApi
 {
     public sealed class HistoryTick: ITick
     {
-        public DateTime DateTime { get; internal set; }
+        public LocalDate Date { get; internal set; }
 
         public decimal Open { get; internal set; }
 

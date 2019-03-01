@@ -1,9 +1,9 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace YahooFinanceApi
 {
     public interface ITick
     {
-        DateTime DateTime { get; }
+        LocalDate Date { get; }
     }
 }

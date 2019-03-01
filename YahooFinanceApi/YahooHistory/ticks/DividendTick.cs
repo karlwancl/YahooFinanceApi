@@ -1,10 +1,10 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace YahooFinanceApi
 {
     public sealed class DividendTick : ITick
     {
-        public DateTime DateTime { get; internal set; }
+        public LocalDate Date { get; internal set; }
 
         public decimal Dividend { get; internal set; }
     }

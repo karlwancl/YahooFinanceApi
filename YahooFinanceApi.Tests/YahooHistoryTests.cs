@@ -5,6 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using NodaTime;
+using NodaTime.TimeZones;
+using System.Threading;
+using Flurl.Http;
 
 namespace YahooFinanceApi.Tests
 {
@@ -14,106 +18,98 @@ namespace YahooFinanceApi.Tests
         public YahooHistoryTests(ITestOutputHelper output) => Write = output.WriteLine;
 
         [Fact]
-        public void NoSymbolsArgumentTest()
+        public async Task SimpleTest()
         {
-            Assert.Throws<ArgumentException>(() => YahooHistory.Symbols());
-            Assert.Throws<ArgumentException>(() => YahooHistory.Symbols(new string[] { }));
-            Assert.Throws<ArgumentNullException>(() => YahooHistory.Symbols(null));
-            Assert.Throws<ArgumentNullException>(() => YahooHistory.Symbols("C", null));
-            Assert.Throws<ArgumentException>(() => YahooHistory.Symbols(""));
-            Assert.Throws<ArgumentException>(() => YahooHistory.Symbols("C", " "));
+            List<HistoryTick> ticks = await new YahooHistory()
+                .Period(Duration.FromDays(10))
+                .GetHistoryAsync("C");
+
+            Assert.NotEmpty(ticks);
+            Assert.True(ticks[0].Close > 0);
+
+            Assert.Null(await new YahooHistory().GetHistoryAsync("badSymbol"));
         }
 
         [Fact]
-        public void DuplicateSymbolsTest()
+        public async Task TestSymbols()
         {
-            var exception = Assert.Throws<ArgumentException>(() => YahooHistory.Symbols("C", "X", "C"));
+            string[] symbols = new [] { "C", "badSymbol" };
+            Dictionary<string, List<HistoryTick>> dictionary = await new YahooHistory().GetHistoryAsync(symbols);
+            Assert.Equal(symbols.Length, dictionary.Count);
+
+            List<HistoryTick> ticks = dictionary["C"];
+            Assert.True(ticks[0].Close > 0);
+
+            Assert.Null(dictionary["badSymbol"]);
+        }
+
+        [Fact]
+        public void TestSymbolsArgument()
+        {
+            var y = new YahooHistory();
+            Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(""));
+            Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { }));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await y.GetHistoryAsync(new string[] { null }));
+            Assert.ThrowsAsync<ArgumentNullException>(async () => await y.GetHistoryAsync(new string[] { "C", null }));
+            Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { "" }));
+            Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { "C", "" }));
+        }
+
+        [Fact]
+        public async Task TestDuplicateSymbols()
+        {
+            var y = new YahooHistory();
+            var exception = await Assert.ThrowsAsync<ArgumentException>
+                (async () => await y.GetHistoryAsync(new[] { "C", "X", "C" }));
             Assert.StartsWith("Duplicate symbol(s): \"C\".", exception.Message);
         }
 
         [Fact]
-        public async Task SuccessTest()
+        public async Task TestPeriodWithDuration() // Duration does not take into account calendar or timezone.
         {
-            IReadOnlyList<(string Symbol, Task<IReadOnlyList<HistoryTick>> Task)> results = await YahooHistory.Symbols("C").GetHistoryAsync();
-            Task<IReadOnlyList<HistoryTick>> task = results[0].Task;
-            Assert.Equal(TaskStatus.RanToCompletion, task.Status);
-            IReadOnlyList <HistoryTick> ticks1 = results[0].Task.Result;
-            Assert.Equal(ticks1, await results[0].Task);
-
-            // SingleAsync() may be used to simplify the result from a single symbol.
-            IReadOnlyList<HistoryTick> ticks2 = await YahooHistory.Symbols("C").GetHistoryAsync().SingleAsync();
-            Assert.Equal(ticks1.Count, ticks2.Count);
-        }
-
-        [Fact]
-        public async Task FailureTest()
-        {
-            IReadOnlyList<(string Symbol, Task<IReadOnlyList<HistoryTick>> Task)> results = await YahooHistory.Symbols("badSymbol").GetHistoryAsync();
-            Task<IReadOnlyList<HistoryTick>> task1 = results[0].Task;
-            Assert.Equal(TaskStatus.Faulted, task1.Status);
-            var exception1 = task1.Exception.InnerException;
-            Assert.Equal(exception1, await Assert.ThrowsAsync<Exception>(async () => await task1));
-
-            // SingleAsync() may be used to simplify the result from a single symbol.
-            var exception2 = await Assert.ThrowsAsync<Exception>(async () => await YahooHistory.Symbols("badSymbol").GetHistoryAsync().SingleAsync());
-            Assert.Equal(exception2.Message, exception1.Message);
-            Write(exception2.Message.ToString());
-            Assert.Equal($"Invalid ticker or endpoint for symbol 'badSymbol'.", exception2.Message);
-        }
-
-        [Fact]
-        public async Task MixedSymbolsTest()
-        {
-            string[] symbols = { "C", "badSymbol" };
-            var results = await YahooHistory.Symbols(symbols).GetHistoryAsync();
-            Assert.Equal(symbols.Length, results.Count);
-
-            var successfulResult = results[0];
-            successfulResult.Symbol = symbols[0];
-            Assert.Equal(TaskStatus.RanToCompletion, successfulResult.Task.Status);
-            var ticks = successfulResult.Task.Result;
-            Assert.True(ticks.Count > 1);
-            Assert.True(ticks[0].Close > 0);
-
-            var faultedResult = results[1];
-            faultedResult.Symbol = symbols[1];
-            Assert.Equal(TaskStatus.Faulted, faultedResult.Task.Status);
-            var exception1 = faultedResult.Task.Exception.InnerException; // AggregateException
-            Assert.Equal(exception1, await Assert.ThrowsAsync<Exception>(async () => await faultedResult.Task));
-            Write(exception1.ToString());
-            Assert.Equal($"Invalid ticker or endpoint for symbol 'badSymbol'.", exception1.Message);
-        }
-
-        [Fact]
-        public async Task PeriodTest()
-        {
-            var ticks = await YahooHistory.Symbols("AAPL").Period(new DateTime(2017, 1, 3), DateTime.Now)
-                .GetHistoryAsync(Frequency.Daily).SingleAsync();
-            Assert.Equal(115.800003m, ticks[0].Open);
-
-            ticks = await YahooHistory.Symbols("AAPL").Period(new DateTime(2017, 1, 3), DateTime.Now)
-                .GetHistoryAsync(Frequency.Weekly).SingleAsync();
-            Assert.Equal(115.800003m, ticks[0].Open);
-
-            ticks = await YahooHistory.Symbols("AAPL").Period(new DateTime(2017, 1, 3), DateTime.Now)
-                .GetHistoryAsync(Frequency.Monthly).SingleAsync();
-            Assert.Equal(115.800003m, ticks[0].Open);
-        }
-
-        [Fact]
-        public async Task PeriodLatestTest()
-        {
-            var ticks = await YahooHistory.Symbols("C").Period(DateTime.Now.AddDays(-7))
-                .GetHistoryAsync().SingleAsync();
+            // default frequency is daily
+            var ticks = await new YahooHistory().Period(Duration.FromDays(10)).GetHistoryAsync("C");
             foreach (var tick in ticks)
-                Write($"{tick.DateTime} {tick.Close}");
+                Write($"{tick.Date} {tick.Close}");
+            Assert.True(ticks.Count > 3);
         }
 
         [Fact]
-        public async Task HistoryTickTest()
+        public async Task TestPeriodWithUnixTimeSeconds()
         {
-            var ticks = await YahooHistory.Symbols("AAPL").Period(new DateTime(2017, 1, 3), new DateTime(2017, 1, 4))
-                .GetHistoryAsync(Frequency.Daily).SingleAsync();
+            LocalDateTime dt = new LocalDateTime(2019, 1, 7, 16, 0);
+            ZonedDateTime zdt = dt.InZoneLeniently("America/New_York".ToDateTimeZone());
+            long seconds = zdt.ToInstant().ToUnixTimeSeconds();
+
+            var ticks = await new YahooHistory().Period(seconds).GetHistoryAsync("C");
+            foreach (var tick in ticks)
+                Write($"{tick.Date} {tick.Close}");
+            Assert.Equal(ticks[0].Date, dt.Date);
+        }
+
+        [Fact]
+        public async Task TestPeriodWithDate()
+        {
+            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone();
+            LocalDate localDate = new LocalDate(2019, 1, 7);
+
+            var ticks = await new YahooHistory().Period(dateTimeZone, localDate).GetHistoryAsync("2448.TW");
+            foreach (var tick in ticks)
+                Write($"{tick.Date} {tick.Close}");
+            Assert.Equal(ticks[0].Date, localDate);
+        }
+
+        [Fact]
+        public async Task TestHistoryTickTest()
+        {
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            LocalDate localDate1 = new LocalDate(2017, 1, 3);
+            LocalDate localDate2 = new LocalDate(2017, 1, 4);
+
+            var ticks = await new YahooHistory()
+                .Period(dateTimeZone, localDate1, localDate2)
+                .GetHistoryAsync("AAPL", Frequency.Daily);
+
             Assert.Equal(2, ticks.Count());
 
             var tick = ticks[0];
@@ -122,36 +118,44 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(114.760002m, tick.Low);
             Assert.Equal(116.150002m, tick.Close);
             Assert.Equal(28_781_900, tick.Volume);
+
+            foreach (var t in ticks)
+                Write($"{t.Date} {t.Close}");
         }
 
         [Fact]
-        public async Task DividendTest()
+        public async Task TestDividend()
         {
-            var dividends = await YahooHistory.Symbols("AAPL").Period(new DateTime(2016, 2, 4), new DateTime(2016, 2, 5))
-                .GetDividendsAsync().SingleAsync();
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            var dividends = await new YahooHistory()
+                .Period(dateTimeZone, new LocalDate(2016, 2, 4), new LocalDate(2016, 2, 5))
+                .GetDividendsAsync("AAPL");
             Assert.Equal(0.52m, dividends[0].Dividend);
         }
 
         [Fact]
-        public async Task SplitTest()
+        public async Task TestSplit()
         {
-            var splits = await YahooHistory.Symbols("AAPL").Period(new DateTime(2014, 6, 8), new DateTime(2014, 6, 10))
-                .GetSplitsAsync().SingleAsync();
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            var splits = await new YahooHistory()
+                .Period(dateTimeZone, new LocalDate(2014, 6, 8), new LocalDate(2014, 6, 10))
+                .GetSplitsAsync("AAPL");
             Assert.Equal(7, splits[0].BeforeSplit);
             Assert.Equal(1, splits[0].AfterSplit);
         }
 
         [Fact]
-        public async Task DatesTest_US()
+        public async Task TestDates_US()
         {
-            var from = new DateTime(2017, 10, 10);
-            var to = new DateTime(2017, 10, 12);
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            var from = new LocalDate(2017, 10, 10);
+            var to = new LocalDate(2017, 10, 12);
 
-            var ticks = await YahooHistory.Symbols("C").Period(from, to)
-                .GetHistoryAsync(Frequency.Daily).SingleAsync();
+            var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
+                .GetHistoryAsync("C", Frequency.Daily);
 
-            Assert.Equal(from, ticks.First().DateTime);
-            Assert.Equal(to,   ticks.Last() .DateTime);
+            Assert.Equal(from, ticks.First().Date);
+            Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
             Assert.Equal(75.18m, ticks[0].Close);
@@ -160,16 +164,18 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public async Task DatesTest_UK()
+        public async Task TestDates_UK()
         {
-            var from = new DateTime(2017, 10, 10);
-            var to = new DateTime(2017, 10, 12);
+            DateTimeZone dateTimeZone = "Europe/London".ToDateTimeZone();
 
-            var ticks = await YahooHistory.Symbols("BA.L").Period(from, to)
-                .GetHistoryAsync(Frequency.Daily).SingleAsync();
+            var from = new LocalDate(2017, 10, 10);
+            var to = new LocalDate(2017, 10, 12);
 
-            Assert.Equal(from, ticks.First().DateTime);
-            Assert.Equal(to,   ticks.Last() .DateTime);
+            var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
+                .GetHistoryAsync("BA.L", Frequency.Daily);
+
+            Assert.Equal(from, ticks.First().Date);
+            Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
             Assert.Equal(616.50m, ticks[0].Close);
@@ -178,16 +184,18 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public async Task DatesTest_TW()
+        public async Task TestDates_TW()
         {
-            var from = new DateTime(2017, 10, 11);
-            var to = new DateTime(2017, 10, 13);
+            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone();
 
-            var ticks = await YahooHistory.Symbols("2498.TW").Period(from, to)
-                .GetHistoryAsync(Frequency.Daily).SingleAsync();
+            var from = new LocalDate(2017, 10, 11);
+            var to = new LocalDate(2017, 10, 13);
 
-            Assert.Equal(from, ticks.First().DateTime);
-            Assert.Equal(to,   ticks.Last() .DateTime);
+            var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
+                .GetHistoryAsync("2498.TW", Frequency.Daily);
+
+            Assert.Equal(from, ticks.First().Date);
+            Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
             Assert.Equal(71.599998m, ticks[0].Close);
@@ -207,34 +215,42 @@ namespace YahooFinanceApi.Tests
         [InlineData("2448.TW")] // Taiwan
         [InlineData("005930.KS")] // Korea
         [InlineData("BHP.AX")] // Sydney
-        public async Task DatesTest(params string[] symbols)
+        public async Task TestDates(string symbol)
         {
-            var from = new DateTime(2017, 9, 12);
-            var to = from.AddDays(2);
+            var security = await new YahooQuotes().GetAsync(symbol);
+            var timeZoneName = security.ExchangeTimezoneName;
+            var timeZone = timeZoneName.ToDateTimeZone();
 
-            var ticks = await YahooHistory.Symbols(symbols).Period(from, to)
-                .GetHistoryAsync().SingleAsync();
+            var from = new LocalDate(2017, 9, 12);
+            var to = from.PlusDays(2);
 
-            Assert.Equal(from, ticks.First().DateTime);
-            Assert.Equal(to,   ticks.Last() .DateTime);
+            var ticks = await new YahooHistory().Period(timeZone, from, to)
+                .GetHistoryAsync(symbol);
+
+            Assert.Equal(from, ticks.First().Date);
+            Assert.Equal(to, ticks.Last().Date);
             Assert.Equal(3, ticks.Count());
         }
 
         [Fact]
-        public async Task CurrencyTest()
+        public async Task TestCurrency()
         {
-            // Note: Forex seems to return date = (requested date - 1 day)
-            var from = new DateTime(2017, 10, 10);
-            var to = new DateTime(2017, 10, 12);
+            var symbol = "EURUSD=X";
+            var security = await new YahooQuotes().GetAsync(symbol);
+            var timeZone = security.ExchangeTimezoneName.ToDateTimeZone();
 
-            var ticks = await YahooHistory.Symbols("EURUSD=X").Period(from, to)
-                .GetHistoryAsync().SingleAsync();
+            // Note: Forex seems to return date = (requested date - 1 day)
+            var from = new LocalDate(2017, 10, 10);
+            var to = from.PlusDays(2);
+
+            var ticks = await new YahooHistory().Period(timeZone, from, to)
+                .GetHistoryAsync("EURUSD=X");
 
             foreach (var tick in ticks)
-                Write($"{tick.DateTime} {tick.Close}");
+                Write($"{tick.Date} {tick.Close}");
 
-            Assert.Equal(from, ticks.First().DateTime.AddDays(1));
-            Assert.Equal(to, ticks.Last().DateTime.AddDays(1));
+            Assert.Equal(from, ticks.First().Date.PlusDays(1));
+            Assert.Equal(to, ticks.Last().Date.PlusDays(1));
 
             Assert.Equal(3, ticks.Count());
             Assert.Equal(1.174164m, ticks[0].Close);
@@ -243,62 +259,64 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
-        public async Task TestManySymbols()
+        public async Task TestFrequency()
         {
-            var symbols = File.ReadAllLines(@"..\..\..\symbols.txt")
+            var symbol = "AAPL";
+            var timeZone = "America/New_York".ToDateTimeZone();
+            var startDate = new LocalDate(2019, 1, 10);
+
+            var ticks1 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Daily);
+            Assert.Equal(new LocalDate(2019, 1, 10), ticks1[0].Date);
+            Assert.Equal(new LocalDate(2019, 1, 11), ticks1[1].Date);
+            Assert.Equal(152.880005m, ticks1[1].Open);
+
+            var ticks2 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Weekly);
+            Assert.Equal(new LocalDate(2019, 1, 7), ticks2[0].Date); // previous Monday
+            Assert.Equal(new LocalDate(2019, 1, 14), ticks2[1].Date);
+            Assert.Equal(150.850006m, ticks2[1].Open);
+
+            var ticks3 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Monthly);
+            Assert.Equal(new LocalDate(2019, 1, 1), ticks3[0].Date); // previous start of month
+            Assert.Equal(new LocalDate(2019, 2, 1), ticks3[1].Date);
+            Assert.Equal(166.960007m, ticks3[1].Open);
+        }
+
+        private List<string> GetSymbols(int number)
+        {
+            return File.ReadAllLines(@"..\..\..\symbols.txt")
                 .Where(line => !line.StartsWith("#"))
-                .Take(100)
-                .ToArray();
-
-            var results = (await YahooHistory.Symbols(symbols).Period(DateTime.Now.AddDays(-10)).GetHistoryAsync()).ToList();
-            int successes = 0, badSymbols = 0, collectionNodified = 0, other = 0;
-
-            for (var i = 0 ; i < results.Count; i++)
-            {
-                var result = results[i];
-                if (result.Task.Status == TaskStatus.RanToCompletion)
-                {
-                    successes++;
-                    continue;
-                }
-                var message = result.Task.Exception.InnerException.Message;
-                if (message.StartsWith("Invalid ticker or endpoint for symbol"))
-                {
-                    badSymbols++;
-                    continue;
-                }
-                if (message.StartsWith("Call failed. Collection was modified"))
-                {
-                    // This is a bug in Flurl: https://github.com/tmenier/Flurl/issues/398
-                    collectionNodified++;
-                    continue;
-                }
-                other++;
-
-                Write($"Symbol: {result.Symbol}({i}), Status: {result.Task.Status}, Exception.Message: {result.Task.Exception.InnerException.Message}");
-            }
-
-            Write("");
-            Write($"Total Symbols: {results.Count}");
-            Write($"Successes: {successes}");
-            Write($"Bad Symbols: {badSymbols}");
-            Write($"CollectionModified: {collectionNodified}");
-            Write($"Other: {other}");
+                .Take(number)
+                .ToList();
         }
 
         [Fact]
-        public void TestDates()
+        public async Task TestManySymbols()
         {
-            var dt0 = new DateTime(2000, 1, 1, 14, 24, 0, DateTimeKind.Utc);
-            var seconds0 = new DateTimeOffset(dt0).ToUnixTimeSeconds();
+            var symbols = GetSymbols(10);
 
-            var dt1 = new DateTime(2000, 1, 1, 22, 24, 0, DateTimeKind.Local); // DateTimeKind.Unspecified => DateTimeKind.Local
-            var seconds = new DateTimeOffset(dt1).ToUnixTimeSeconds(); // first converted to UTC
+            var results = await new YahooHistory().Period(Duration.FromDays(10)).GetHistoryAsync(symbols);
+            var invalidSymbols = results.Where(r => r.Value == null).Count();
 
-            //new DateTimeOffset(DateTime.SpecifyKind(dt, DateTimeKind.Utc)).ToUnixTimeSeconds().ToString("F0");
-            var dt2 = DateTimeOffset.FromUnixTimeSeconds(seconds0).UtcDateTime; // assumes UTC
-            var dt3 = DateTimeOffset.FromUnixTimeSeconds(seconds).UtcDateTime; // assumes UTC
-            ;
+            // If (message.StartsWith("Call failed. Collection was modified"))
+            // this is a bug in Flurl: https://github.com/tmenier/Flurl/issues/398
+
+            Write("");
+            Write($"Total Symbols:   {symbols.Count}");
+            Write($"Invalid Symbols: {invalidSymbols}");
         }
+
+        [Fact]
+        public async Task TestCancellationTimeout()
+        {
+            var cts = new CancellationTokenSource();
+            //cts.CancelAfter(20);
+
+            var task = new YahooHistory(cts.Token).Period(Duration.FromDays(10)).GetHistoryAsync(GetSymbols(5));
+
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await task);
+        }
+
     }
 }
