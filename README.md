@@ -1,6 +1,6 @@
 # YahooFinanceApi
 [![Build status](https://ci.appveyor.com/api/projects/status/138s6on1y0wnaxms?svg=true)](https://ci.appveyor.com/project/lppkarl/yahoofinanceapi)
-[![NuGet](https://img.shields.io/nuget/v/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
+[![NuGet](https://img.shields.io/nuget/vpre/:packageName.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![NuGet](https://img.shields.io/nuget/dt/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)](https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE)
 
@@ -16,22 +16,7 @@ A handy Yahoo! Finance api wrapper, based on .NET Standard 2.0
 This library is intended for personal use only, any improper use of this library is not recommended.
 
 ## Install Note
-For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
-
-## Important Note (2017/11/12)
-As Yahoo has terminated their csv quote service, the depending GetAsync method is no longer usable. Please consider using QueryAsync method instead.
-
-## v2.1 Changes (2017/11/12) (Great thanks again to @dshe :D)
-* GetAsync method is obsoleted since Yahoo has terminated their csv quote service
-* Added QueryAsync as a replacement of the original GetAsync method
-* Added Fields for QueryAsync method
-
-## v2.0 Changes (2017/10/28) (Great thanks for PRs from @dshe :D)
-* Removed error-proned timezone support
-* All api call now reads and returns datetime in EST instead of local timezone.
-* Removed ascending, leaveZeroWhenInvalid parameter in historical api call.
-* IgnoreEmptyRows property in replacement with the original leaveZeroIfInvalid parameter.
-* Performance boost on async calls.
+Dependencies: NodaTime
 
 ## Supported Platforms
 * .NET Core 2.0
@@ -47,7 +32,7 @@ You can find the package through Nuget
 
 ## How To Use
 
-### Add reference
+### Add namespoace reference
 
     using YahooFinanceApi;
 
