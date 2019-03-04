@@ -44,23 +44,12 @@ security = securities["C"];
 var price = security.RegularMarketPrice;
 ```
 ### Supported fields for stock quote
-||||||
-|--|--|--|--|--|--|
-| Language | QuoteType | QuoteSourceName | Currency | MarketState | RegularMarketPrice | 
-| RegularMarketTime | RegularMarketChange | RegularMarketOpen | RegularMarketDayHigh | RegularMarketDayLow | RegularMarketVolume |
-| ShortName | FiftyTwoWeekHighChange | FiftyTwoWeekHighChangePercent | FiftyTwoWeekLow | FiftyTwoWeekHigh | DividendDate |
-| EarningsTimestamp | EarningsTimestampStart | EarningsTimestampEnd | TrailingAnnualDividendRate | TrailingPE | TrailingAnnualDividendYield | 
-| EpsTrailingTwelveMonths | EpsForward | SharesOutstanding | BookValue | RegularMarketChangePercent | RegularMarketPreviousClose | 
-| Bid | Ask | BidSize | AskSize | MessageBoardId | FullExchangeName | 
-| LongName | FinancialCurrency | AverageDailyVolume3Month | AverageDailyVolume10Day | FiftyTwoWeekLowChange | FiftyTwoWeekLowChangePercent |
-| TwoHundredDayAverageChangePercent | MarketCap | ForwardPE | PriceToBook | SourceInterval | ExchangeTimezoneName |
-| ExchangeTimezoneShortName | Market | Exchange | ExchangeDataDelayedBy | PriceHint | FiftyDayAverage |
-| FiftyDayAverageChange | FiftyDayAverageChangePercent | TwoHundredDayAverage | TwoHundredDayAverageChange | Tradeable | GmtOffSetMilliseconds |
-| Symbol |||||
-
+Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent
 ### Ignore invalid rows
-    // Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement
-    Yahoo.IgnoreEmptyRows = true;
+Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
+```csharp
+Yahoo.IgnoreEmptyRows = true;
+```    
 
 ### Get historical data for a stock
 ```csharp
