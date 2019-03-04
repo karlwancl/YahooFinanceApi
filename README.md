@@ -27,24 +27,23 @@ Dependencies: NodaTime
 
 ## How To Install
 You can find the package through Nuget
-
-    PM> Install-Package YahooFinanceApi
-
+```csharp
+PM> Install-Package YahooFinanceApi
+```
 ## How To Use
 
 ### Add namespoace reference
-
-    using YahooFinanceApi;
-
+```csharp
+using YahooFinanceApi;
+```
 ### Get stock quotes
 ```csharp
-var securities = await new YahooQuotes()
-        .GetAsync(new [] { "C", "AAPL" });
+var securities = await new YahooQuotes().GetAsync(new [] { "C", "AAPL" });
 security = securities["C"];
 var price = security.RegularMarketPrice;
 ```
 ### Supported fields for stock quote
-Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent
+Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent.
 ### Ignore invalid rows
 Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
 ```csharp
@@ -53,23 +52,17 @@ Yahoo.IgnoreEmptyRows = true;
 
 ### Get historical data for a stock
 ```csharp
-var securities = await new YahooHistory()
-        .Period(Duration.FromDays(10))
-        .GetHistoryAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetHistoryAsync(new[] { "C", "AAPL" });
 var historyTicks = securities["C"];
 var firstClose = historyTicks[0].Close;
 ```
 ### Get dividend history for a stock
 ```csharp
-var securities = await new YahooHistory()
-        .Period(Duration.FromDays(10))
-        .GetDividendsAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetDividendsAsync(new[] { "C", "AAPL" });
 ```
 ### Get stock split history for a stock
 ```csharp
-var securities = await new YahooHistory()
-        .Period(Duration.FromDays(10))
-        .GetSplitsAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetSplitsAsync(new[] { "C", "AAPL" });
 ```
 ### Powered by
 * [Flurl](https://github.com/tmenier/Flurl) ([@tmenier](https://github.com/tmenier)) - A simple & elegant fluent-style REST api library 
