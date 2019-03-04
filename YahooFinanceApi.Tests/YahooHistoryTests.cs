@@ -10,6 +10,7 @@ using NodaTime.TimeZones;
 using System.Threading;
 using Flurl.Http;
 
+
 namespace YahooFinanceApi.Tests
 {
     public class YahooHistoryTests
@@ -20,9 +21,11 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task SimpleTest()
         {
-            List<HistoryTick> ticks = await new YahooHistory()
+            List<HistoryTick>? ticks = await new YahooHistory()
                 .Period(Duration.FromDays(10))
                 .GetHistoryAsync("C");
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
 
             Assert.NotEmpty(ticks);
             Assert.True(ticks[0].Close > 0);
@@ -34,10 +37,12 @@ namespace YahooFinanceApi.Tests
         public async Task TestSymbols()
         {
             string[] symbols = new [] { "C", "badSymbol" };
-            Dictionary<string, List<HistoryTick>> dictionary = await new YahooHistory().GetHistoryAsync(symbols);
+            Dictionary<string, List<HistoryTick>?> dictionary = await new YahooHistory().GetHistoryAsync(symbols);
             Assert.Equal(symbols.Length, dictionary.Count);
 
-            List<HistoryTick> ticks = dictionary["C"];
+            List<HistoryTick>? ticks = dictionary["C"];
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
             Assert.True(ticks[0].Close > 0);
 
             Assert.Null(dictionary["badSymbol"]);
@@ -49,8 +54,6 @@ namespace YahooFinanceApi.Tests
             var y = new YahooHistory();
             Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(""));
             Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { }));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await y.GetHistoryAsync(new string[] { null }));
-            Assert.ThrowsAsync<ArgumentNullException>(async () => await y.GetHistoryAsync(new string[] { "C", null }));
             Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { "" }));
             Assert.ThrowsAsync<ArgumentException>(async () => await y.GetHistoryAsync(new string[] { "C", "" }));
         }
@@ -69,6 +72,8 @@ namespace YahooFinanceApi.Tests
         {
             // default frequency is daily
             var ticks = await new YahooHistory().Period(Duration.FromDays(10)).GetHistoryAsync("C");
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
             foreach (var tick in ticks)
                 Write($"{tick.Date} {tick.Close}");
             Assert.True(ticks.Count > 3);
@@ -82,6 +87,8 @@ namespace YahooFinanceApi.Tests
             long seconds = zdt.ToInstant().ToUnixTimeSeconds();
 
             var ticks = await new YahooHistory().Period(seconds).GetHistoryAsync("C");
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
             foreach (var tick in ticks)
                 Write($"{tick.Date} {tick.Close}");
             Assert.Equal(ticks[0].Date, dt.Date);
@@ -94,6 +101,8 @@ namespace YahooFinanceApi.Tests
             LocalDate localDate = new LocalDate(2019, 1, 7);
 
             var ticks = await new YahooHistory().Period(dateTimeZone, localDate).GetHistoryAsync("2448.TW");
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
             foreach (var tick in ticks)
                 Write($"{tick.Date} {tick.Close}");
             Assert.Equal(ticks[0].Date, localDate);
@@ -109,6 +118,9 @@ namespace YahooFinanceApi.Tests
             var ticks = await new YahooHistory()
                 .Period(dateTimeZone, localDate1, localDate2)
                 .GetHistoryAsync("AAPL", Frequency.Daily);
+
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
 
             Assert.Equal(2, ticks.Count());
 
@@ -130,6 +142,10 @@ namespace YahooFinanceApi.Tests
             var dividends = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2016, 2, 4), new LocalDate(2016, 2, 5))
                 .GetDividendsAsync("AAPL");
+
+            if (dividends == null)
+                throw new Exception("Invalid symbol");
+
             Assert.Equal(0.52m, dividends[0].Dividend);
         }
 
@@ -140,6 +156,8 @@ namespace YahooFinanceApi.Tests
             var splits = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2014, 6, 8), new LocalDate(2014, 6, 10))
                 .GetSplitsAsync("AAPL");
+            if (splits == null)
+                throw new Exception("Invalid symbol");
             Assert.Equal(7, splits[0].BeforeSplit);
             Assert.Equal(1, splits[0].AfterSplit);
         }
@@ -153,6 +171,8 @@ namespace YahooFinanceApi.Tests
 
             var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
                 .GetHistoryAsync("C", Frequency.Daily);
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
 
             Assert.Equal(from, ticks.First().Date);
             Assert.Equal(to, ticks.Last().Date);
@@ -173,6 +193,8 @@ namespace YahooFinanceApi.Tests
 
             var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
                 .GetHistoryAsync("BA.L", Frequency.Daily);
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
 
             Assert.Equal(from, ticks.First().Date);
             Assert.Equal(to, ticks.Last().Date);
@@ -193,6 +215,8 @@ namespace YahooFinanceApi.Tests
 
             var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
                 .GetHistoryAsync("2498.TW", Frequency.Daily);
+            if (ticks == null)
+                throw new Exception("Invalid symbol");
 
             Assert.Equal(from, ticks.First().Date);
             Assert.Equal(to, ticks.Last().Date);
@@ -218,8 +242,14 @@ namespace YahooFinanceApi.Tests
         public async Task TestDates(string symbol)
         {
             var security = await new YahooQuotes().GetAsync(symbol);
+            if (security == null)
+                throw new Exception($"Invalid symbol: {symbol}.");
             var timeZoneName = security.ExchangeTimezoneName;
+            if (timeZoneName == null)
+                throw new Exception($"Timezone name not found.");
             var timeZone = timeZoneName.ToDateTimeZone();
+            if (timeZone == null)
+                throw new Exception($"Invalid timezone: {timeZoneName}.");
 
             var from = new LocalDate(2017, 9, 12);
             var to = from.PlusDays(2);
@@ -237,14 +267,25 @@ namespace YahooFinanceApi.Tests
         {
             var symbol = "EURUSD=X";
             var security = await new YahooQuotes().GetAsync(symbol);
-            var timeZone = security.ExchangeTimezoneName.ToDateTimeZone();
+            if (security == null)
+                throw new Exception($"Invalid symbol: {symbol}.");
+
+            var timezoneName = security.ExchangeTimezoneName;
+            if (timezoneName == null)
+                throw new Exception($"Timezone name not found.");
+            var timeZone = timezoneName.ToDateTimeZone();
+            if (timeZone == null)
+                throw new Exception($"Invalid timezone: {timezoneName}.");
 
             // Note: Forex seems to return date = (requested date - 1 day)
             var from = new LocalDate(2017, 10, 10);
             var to = from.PlusDays(2);
 
             var ticks = await new YahooHistory().Period(timeZone, from, to)
-                .GetHistoryAsync("EURUSD=X");
+                .GetHistoryAsync(symbol);
+
+            if (ticks == null)
+                throw new Exception($"Invalid symbol: {symbol}");
 
             foreach (var tick in ticks)
                 Write($"{tick.Date} {tick.Close}");
@@ -266,16 +307,25 @@ namespace YahooFinanceApi.Tests
             var startDate = new LocalDate(2019, 1, 10);
 
             var ticks1 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Daily);
+            if (ticks1 == null)
+                throw new Exception($"Invalid symbol: {symbol}");
+
             Assert.Equal(new LocalDate(2019, 1, 10), ticks1[0].Date);
             Assert.Equal(new LocalDate(2019, 1, 11), ticks1[1].Date);
             Assert.Equal(152.880005m, ticks1[1].Open);
 
             var ticks2 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Weekly);
+            if (ticks2 == null)
+                throw new Exception($"Invalid symbol: {symbol}");
+
             Assert.Equal(new LocalDate(2019, 1, 7), ticks2[0].Date); // previous Monday
             Assert.Equal(new LocalDate(2019, 1, 14), ticks2[1].Date);
             Assert.Equal(150.850006m, ticks2[1].Open);
 
             var ticks3 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Monthly);
+            if (ticks3 == null)
+                throw new Exception($"Invalid symbol: {symbol}");
+
             Assert.Equal(new LocalDate(2019, 1, 1), ticks3[0].Date); // previous start of month
             Assert.Equal(new LocalDate(2019, 2, 1), ticks3[1].Date);
             Assert.Equal(166.960007m, ticks3[1].Open);

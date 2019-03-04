@@ -1,83 +1,102 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace YahooFinanceApi
 {
     public class Security
     {
-        public Dictionary<string, dynamic> Fields { get; private set; }
+        public IReadOnlyDictionary<string, dynamic> Fields { get; }
 
         // ctor
-        internal Security(Dictionary<string, dynamic> fields) => Fields = fields;
+        internal Security(IDictionary<string, dynamic> dictionary)
+        {
+            var fields = new Dictionary<string, dynamic>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in dictionary)
+                fields.Add(kvp.Key.ToPascal(), kvp.Value);
+            Fields = new ReadOnlyDictionary<string, dynamic>(fields);
+        }
 
-        public dynamic this[string fieldName] => Fields[fieldName];
-        public dynamic this[Field field] => Fields[field.ToString()];
+        public dynamic? this[string fieldName] => Get(fieldName);
+        public dynamic? this[Field field] => Get(field.ToString());
+        private dynamic? Get([CallerMemberName] string? name = null)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            return Fields.TryGetValue(name, out dynamic val) ? val : null;
+        }
 
-        // Security.cs: 69, This list was generated automatically. These names and types have been defined by Yahoo.
-        public Double Ask => this["Ask"];
-        public Int64 AskSize => this["AskSize"];
-        public Int64 AverageDailyVolume10Day => this["AverageDailyVolume10Day"];
-        public Int64 AverageDailyVolume3Month => this["AverageDailyVolume3Month"];
-        public Double Bid => this["Bid"];
-        public Int64 BidSize => this["BidSize"];
-        public Double BookValue => this["BookValue"];
-        public String Currency => this["Currency"];
-        public Int64 DividendDate => this["DividendDate"];
-        public Int64 EarningsTimestamp => this["EarningsTimestamp"];
-        public Int64 EarningsTimestampEnd => this["EarningsTimestampEnd"];
-        public Int64 EarningsTimestampStart => this["EarningsTimestampStart"];
-        public Double EpsForward => this["EpsForward"];
-        public Double EpsTrailingTwelveMonths => this["EpsTrailingTwelveMonths"];
-        public String Exchange => this["Exchange"];
-        public Int64 ExchangeDataDelayedBy => this["ExchangeDataDelayedBy"];
-        public String ExchangeTimezoneName => this["ExchangeTimezoneName"];
-        public String ExchangeTimezoneShortName => this["ExchangeTimezoneShortName"];
-        public Double FiftyDayAverage => this["FiftyDayAverage"];
-        public Double FiftyDayAverageChange => this["FiftyDayAverageChange"];
-        public Double FiftyDayAverageChangePercent => this["FiftyDayAverageChangePercent"];
-        public Double FiftyTwoWeekHigh => this["FiftyTwoWeekHigh"];
-        public Double FiftyTwoWeekHighChange => this["FiftyTwoWeekHighChange"];
-        public Double FiftyTwoWeekHighChangePercent => this["FiftyTwoWeekHighChangePercent"];
-        public Double FiftyTwoWeekLow => this["FiftyTwoWeekLow"];
-        public Double FiftyTwoWeekLowChange => this["FiftyTwoWeekLowChange"];
-        public Double FiftyTwoWeekLowChangePercent => this["FiftyTwoWeekLowChangePercent"];
-        public String FinancialCurrency => this["FinancialCurrency"];
-        public Double ForwardPE => this["ForwardPE"];
-        public String FullExchangeName => this["FullExchangeName"];
-        public Int64 GmtOffSetMilliseconds => this["GmtOffSetMilliseconds"];
-        public String Language => this["Language"];
-        public String LongName => this["LongName"];
-        public String Market => this["Market"];
-        public Int64 MarketCap => this["MarketCap"];
-        public String MarketState => this["MarketState"];
-        public String MessageBoardId => this["MessageBoardId"];
-        public Double PostMarketChange => this["PostMarketChange"];
-        public Double PostMarketChangePercent => this["PostMarketChangePercent"];
-        public Double PostMarketPrice => this["PostMarketPrice"];
-        public Int64 PostMarketTime => this["PostMarketTime"];
-        public Int64 PriceHint => this["PriceHint"];
-        public Double PriceToBook => this["PriceToBook"];
-        public String QuoteSourceName => this["QuoteSourceName"];
-        public String QuoteType => this["QuoteType"];
-        public Double RegularMarketChange => this["RegularMarketChange"];
-        public Double RegularMarketChangePercent => this["RegularMarketChangePercent"];
-        public Double RegularMarketDayHigh => this["RegularMarketDayHigh"];
-        public Double RegularMarketDayLow => this["RegularMarketDayLow"];
-        public Double RegularMarketOpen => this["RegularMarketOpen"];
-        public Double RegularMarketPreviousClose => this["RegularMarketPreviousClose"];
-        public Double RegularMarketPrice => this["RegularMarketPrice"];
-        public Int64 RegularMarketTime => this["RegularMarketTime"];
-        public Int64 RegularMarketVolume => this["RegularMarketVolume"];
-        public Int64 SharesOutstanding => this["SharesOutstanding"];
-        public String ShortName => this["ShortName"];
-        public Int64 SourceInterval => this["SourceInterval"];
-        public String Symbol => this["Symbol"];
-        public Boolean Tradeable => this["Tradeable"];
-        public Double TrailingAnnualDividendRate => this["TrailingAnnualDividendRate"];
-        public Double TrailingAnnualDividendYield => this["TrailingAnnualDividendYield"];
-        public Double TrailingPE => this["TrailingPE"];
-        public Double TwoHundredDayAverage => this["TwoHundredDayAverage"];
-        public Double TwoHundredDayAverageChange => this["TwoHundredDayAverageChange"];
-        public Double TwoHundredDayAverageChangePercent => this["TwoHundredDayAverageChangePercent"];
+        // Security.cs: 69. This list was generated automatically from names defined by Yahoo.
+        public Double? Ask => Get();
+        public Int64? AskSize => Get();
+        public Int64? AverageDailyVolume10Day => Get();
+        public Int64? AverageDailyVolume3Month => Get();
+        public Double? Bid => Get();
+        public Int64? BidSize => Get();
+        public Double? BookValue => Get();
+        public String? Currency => Get();
+        public Int64? DividendDate => Get();
+        public Int64? EarningsTimestamp => Get();
+        public Int64? EarningsTimestampEnd => Get();
+        public Int64? EarningsTimestampStart => Get();
+        public Double? EpsForward => Get();
+        public Double? EpsTrailingTwelveMonths => Get();
+        public Boolean? EsgPopulated => Get();
+        public String? Exchange => Get();
+        public Int64? ExchangeDataDelayedBy => Get();
+        public String? ExchangeTimezoneName => Get();
+        public String? ExchangeTimezoneShortName => Get();
+        public Double? FiftyDayAverage => Get();
+        public Double? FiftyDayAverageChange => Get();
+        public Double? FiftyDayAverageChangePercent => Get();
+        public Double? FiftyTwoWeekHigh => Get();
+        public Double? FiftyTwoWeekHighChange => Get();
+        public Double? FiftyTwoWeekHighChangePercent => Get();
+        public Double? FiftyTwoWeekLow => Get();
+        public Double? FiftyTwoWeekLowChange => Get();
+        public Double? FiftyTwoWeekLowChangePercent => Get();
+        public String? FiftyTwoWeekRange => Get();
+        public String? FinancialCurrency => Get();
+        public Double? ForwardPE => Get();
+        public String? FullExchangeName => Get();
+        public Int64? GmtOffSetMilliseconds => Get();
+        public String? Language => Get();
+        public String? LongName => Get();
+        public String? Market => Get();
+        public Int64? MarketCap => Get();
+        public String? MarketState => Get();
+        public String? MessageBoardId => Get();
+        public Double? PostMarketChange => Get();
+        public Double? PostMarketChangePercent => Get();
+        public Double? PostMarketPrice => Get();
+        public Int64? PostMarketTime => Get();
+        public Int64? PriceHint => Get();
+        public Double? PriceToBook => Get();
+        public String? QuoteSourceName => Get();
+        public String? QuoteType => Get();
+        public String? Region => Get();
+        public Double? RegularMarketChange => Get();
+        public Double? RegularMarketChangePercent => Get();
+        public Double? RegularMarketDayHigh => Get();
+        public Double? RegularMarketDayLow => Get();
+        public String? RegularMarketDayRange => Get();
+        public Double? RegularMarketOpen => Get();
+        public Double? RegularMarketPreviousClose => Get();
+        public Double? RegularMarketPrice => Get();
+        public Int64? RegularMarketTime => Get();
+        public Int64? RegularMarketVolume => Get();
+        public Int64? SharesOutstanding => Get();
+        public String? ShortName => Get();
+        public Int64? SourceInterval => Get();
+        public String? Symbol => Get();
+        public Boolean? Tradeable => Get();
+        public Double? TrailingAnnualDividendRate => Get();
+        public Double? TrailingAnnualDividendYield => Get();
+        public Double? TrailingPE => Get();
+        public Double? TwoHundredDayAverage => Get();
+        public Double? TwoHundredDayAverageChange => Get();
+        public Double? TwoHundredDayAverageChangePercent => Get();
     }
 }

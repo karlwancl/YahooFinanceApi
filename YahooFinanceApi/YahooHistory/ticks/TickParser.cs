@@ -6,7 +6,7 @@ using NodaTime.Text;
 
 namespace YahooFinanceApi
 {
-    public static class TickParser
+    internal static class TickParser
     {
         private static readonly LocalDatePattern pattern = LocalDatePattern.CreateWithInvariantCulture("yyyy-MM-dd");
         public static bool IgnoreEmptyRows { get; set; }
@@ -25,10 +25,10 @@ namespace YahooFinanceApi
             throw new Exception("GetParamFromTickType<T>: Invalid type.");
         }
 
-        internal static ITick Parse<ITick>(string[] row)
+        internal static ITick? Parse<ITick>(string[] row) where ITick: class
         {
             var type = typeof(ITick);
-            object instance;
+            object? instance;
 
             if (type == typeof(HistoryTick))
                 instance = ToHistoryTick(row);
@@ -39,10 +39,10 @@ namespace YahooFinanceApi
             else
                 throw new Exception("Parse<ITick>: Invalid type.");
 
-            return (ITick)instance;
+            return (ITick?)instance;
         }
 
-        private static HistoryTick ToHistoryTick(string[] row)
+        private static HistoryTick? ToHistoryTick(string[] row)
         {
             var tick = new HistoryTick
             {
@@ -63,7 +63,7 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        private static DividendTick ToDividendTick(string[] row)
+        private static DividendTick? ToDividendTick(string[] row)
         {
             var tick = new DividendTick
             {
@@ -77,7 +77,7 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        private static SplitTick ToSplitTick(string[] row)
+        private static SplitTick? ToSplitTick(string[] row)
         {
             var tick = new SplitTick { Date = row[0].ToLocalDate() };
 

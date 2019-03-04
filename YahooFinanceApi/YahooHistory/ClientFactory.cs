@@ -10,7 +10,7 @@ namespace YahooFinanceApi
     {
         private static IFlurlClient client;
         private static string crumb;
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, CancellationToken ct)
         {

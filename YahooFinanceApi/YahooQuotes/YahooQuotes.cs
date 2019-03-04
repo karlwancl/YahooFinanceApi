@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+//#nullable enable
+
 namespace YahooFinanceApi
 {
     // Invalid symbols are often, but not always, ignored by Yahoo.
@@ -31,15 +33,15 @@ namespace YahooFinanceApi
             if (fields.Any(x => string.IsNullOrWhiteSpace(x) || !fields.Any()))
                 throw new ArgumentException(nameof(fields));
             this.fields.AddRange(fields);
-            var duplicates = this.fields.Duplicates().FirstOrDefault();
+            var duplicates = this.fields.CaseInsensitiveDuplicates().FirstOrDefault();
             if (duplicates != null)
-                throw new ArgumentException($"Duplicate field: {duplicates}.");
+                throw new ArgumentException($"Duplicate field: {duplicates}.", nameof(fields));
             return this;
         }
 
-        public async Task<Security> GetAsync(string symbol)
+        public async Task<Security?> GetAsync(string symbol)
         {
-            dynamic expando = null;
+            dynamic expando;
 
             try
             {
@@ -57,20 +59,18 @@ namespace YahooFinanceApi
 
             IDictionary<string, dynamic> dictionary = quoteExpando.result[0];
 
-            var pascalDictionary = dictionary.ToDictionary(f => f.Key.ToPascal(), f=> f.Value);
-
-            var security = new Security(pascalDictionary);
+            var security = new Security(dictionary);
 
             return security;
         }
 
-        public async Task<Dictionary<string, Security>> GetAsync(IList<string> symbols)
+        public async Task<Dictionary<string, Security?>> GetAsync(IList<string> symbols)
         {
-            dynamic expando = null;
-
-            var securities = new Dictionary<string, Security>();
+            var securities = new Dictionary<string, Security?>(StringComparer.OrdinalIgnoreCase);
             foreach (var symbol in symbols)
                 securities.Add(symbol, null);
+
+            dynamic expando;
 
             try
             {
@@ -88,11 +88,7 @@ namespace YahooFinanceApi
                 throw new InvalidDataException($"QueryAsync error: {quoteExpando.error}");
 
             foreach (IDictionary<string, dynamic> dictionary in quoteExpando.result)
-            {
-                // Change the Yahoo field names to start with upper case.
-                var pascalDictionary = dictionary.ToDictionary(f => f.Key.ToPascal(), f => f.Value);
-                securities[dictionary["symbol"]] = new Security(pascalDictionary);
-            }
+                securities[dictionary["symbol"]] = new Security(dictionary);
 
             return securities;
         }
@@ -103,7 +99,7 @@ namespace YahooFinanceApi
                 throw new ArgumentNullException(nameof(symbols));
             if (symbols.Any(x => string.IsNullOrWhiteSpace(x)) || !symbols.Any())
                 throw new ArgumentException(nameof(symbols));
-            var duplicateSymbol = symbols.Duplicates().FirstOrDefault();
+            var duplicateSymbol = symbols.CaseInsensitiveDuplicates().FirstOrDefault();
             if (duplicateSymbol != null)
                 throw new ArgumentException($"Duplicate symbol: {duplicateSymbol}.");
 
@@ -112,7 +108,7 @@ namespace YahooFinanceApi
                 .SetQueryParam("symbols", string.Join(",", symbols), true);
 
             if (fields.Any())
-                url = url.SetQueryParam("fields", string.Join(",", fields.Select(s => s.ToLowerCamel())), true);
+                url = url.SetQueryParam("fields", string.Join(",", fields), true);
 
             Debug.WriteLine(url);
 

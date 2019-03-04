@@ -13,7 +13,8 @@
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
-    <PackageReleaseNotes>[26/2/2019] Added support for multiple historical symbols (@dshe)
+    <PackageReleaseNotes>[04/3/2019] VS2019 and C#8 (@dshe)
+[26/2/2019] Added support for multiple historical symbols (@dshe)
 [12/2/2019] Added post market fields (by @KrisSiegel)
 [16/9/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
 [12/12/2017] Fixed quote property case handling, improved tests
@@ -40,12 +41,15 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <Version>3.0.0-beta1</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
+    <NullableContextOptions>enable</NullableContextOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
+    <NullableContextOptions>enable</NullableContextOptions>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="**\*.resx" />

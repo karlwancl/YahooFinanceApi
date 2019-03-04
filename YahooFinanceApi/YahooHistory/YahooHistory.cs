@@ -44,52 +44,50 @@ namespace YahooFinanceApi
             return Period(seconds, end.Value.At(new LocalTime(16, 0)).InZoneLeniently(timeZone).ToInstant().ToUnixTimeSeconds());
         }
 
-        public Task<List<HistoryTick>>
+        public Task<List<HistoryTick>?>
             GetHistoryAsync(string symbol, Frequency frequency = Frequency.Daily) => GetTicksAsync<HistoryTick>(symbol, frequency);
 
-        public Task<Dictionary<string, List<HistoryTick>>>
-            GetHistoryAsync(IList<string> symbols, Frequency frequency = Frequency.Daily) => GetTicksAsync<HistoryTick>(symbols);
+        public Task<Dictionary<string, List<HistoryTick>?>>
+            GetHistoryAsync(IList<string> symbols, Frequency frequency = Frequency.Daily) => GetTicksAsync<HistoryTick>(symbols, frequency);
 
-        public Task<List<DividendTick>> 
+        public Task<List<DividendTick>?>
             GetDividendsAsync(string symbol) => GetTicksAsync<DividendTick>(symbol);
 
-        public Task<Dictionary<string, List<DividendTick>>>
+        public Task<Dictionary<string, List<DividendTick>?>>
             GetDividendsAsync(IList<string> symbols) => GetTicksAsync<DividendTick>(symbols);
 
-        public Task<List<SplitTick>> 
+        public Task<List<SplitTick>?> 
             GetSplitsAsync(string symbol) => GetTicksAsync<SplitTick>(symbol);
 
-        public Task<Dictionary<string, List<SplitTick>>>
+        public Task<Dictionary<string, List<SplitTick>?>>
             GetSplitsAsync(IList<string> symbols) => GetTicksAsync<SplitTick>(symbols);
 
-        private async Task<Dictionary<string, List<ITick>>> GetTicksAsync<ITick>(IList<string> symbols, Frequency frequency = Frequency.Daily)
+        private async Task<Dictionary<string, List<ITick>?>> GetTicksAsync<ITick>(IList<string> symbols, Frequency frequency = Frequency.Daily) where ITick : class
         {
             if (symbols == null)
                 throw new ArgumentNullException(nameof(symbols));
             if (!symbols.Any())
                 throw new ArgumentException("Empty list.", nameof(symbols));
 
-            var duplicates = symbols.Duplicates();
+            var duplicates = symbols.CaseInsensitiveDuplicates();
             if (duplicates.Any())
             {
                 var msg = "Duplicate symbol(s): " + duplicates.Select(s => "\"" + s + "\"").ToCommaDelimitedList() + ".";
                 throw new ArgumentException(msg, nameof(symbols));
             }
 
-            this.frequency = frequency;
-
             // create a list of started tasks
-            var tasks = symbols.Select(symbol => GetTicksAsync<ITick>(symbol)).ToList();
+            var tasks = symbols.Select(symbol => GetTicksAsync<ITick>(symbol, frequency)).ToList();
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            var results = tasks.Select(task => task.Result).ToList();
-            var dictionary = results.Select((result, i) => (result, i)).ToDictionary(x => symbols[x.i], x => x.result);
+            var dictionary = tasks.Select((task, i) => (task, i))
+                .ToDictionary(x => symbols[x.i], x => x.task.Result, StringComparer.OrdinalIgnoreCase);
 
             return dictionary;
         }
 
-        private async Task<List<ITick>> GetTicksAsync<ITick>(string symbol, Frequency frequency = Frequency.Daily)
+        private async Task<List<ITick>?> GetTicksAsync<ITick>(string symbol, Frequency frequency = Frequency.Daily) where ITick : class
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -109,7 +107,7 @@ namespace YahooFinanceApi
             }
         }
 
-        private async Task<List<ITick>> GetTickResponseAsync<ITick>(string symbol, string tickParam)
+        private async Task<List<ITick>> GetTickResponseAsync<ITick>(string symbol, string tickParam) where ITick:class
         {
             using (var stream = await GetResponseStreamAsync(symbol, tickParam).ConfigureAwait(false))
             using (var sr = new StreamReader(stream))

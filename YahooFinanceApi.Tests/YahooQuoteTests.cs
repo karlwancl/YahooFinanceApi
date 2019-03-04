@@ -18,32 +18,36 @@ namespace YahooFinanceApi.Tests
         public async Task SimpleQuery()
         {
             // one symbol
-            Security security = await new YahooQuotes().GetAsync("C");
+            string symbol = "C";
+            Security? security = await new YahooQuotes().GetAsync(symbol);
+            if (security == null)
+                throw new Exception("Invalid symbol: " + symbol);
             Assert.NotNull(security.LongName);
 
             // invalid symbol
             Assert.Null(await new YahooQuotes().GetAsync("invalidSymbol"));
 
-            // list of symbols
-            Dictionary<string, Security> securities = await new YahooQuotes().GetAsync(new List<string>() { "C", "invalidSymbol" });
-            security = securities["C"];
-            Assert.True(security.RegularMarketPrice > 0);
+            // multiple symbols
+            IList<string> symbols = new List<string>() { "invalidSymbol", "C" };
+            Dictionary<string, Security?> securities = await new YahooQuotes().GetAsync(symbols);
             Assert.Null(securities["invalidSymbol"]);
+
+            security = securities["C"];
+            if (security == null)
+                throw new Exception("Invalid symbol: " + symbols[0]);
+            Assert.True(security.RegularMarketPrice > 0);
         }
 
         [Fact]
         public async Task TestSymbolArgument()
         {
-            // null symbol
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await new YahooQuotes().GetAsync((string)null));
-
-            // no symbol
+            // empty string
             await Assert.ThrowsAsync<ArgumentException>(async () => await new YahooQuotes().GetAsync(""));
 
-            // null symbols
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await new YahooQuotes().GetAsync(new string[] { null }));
+            // empty list
+            await Assert.ThrowsAsync<ArgumentException>(async () => await new YahooQuotes().GetAsync(new string[] { }));
 
-            // empty symbols
+            // empty string in list
             await Assert.ThrowsAsync<ArgumentException>(async () => await new YahooQuotes().GetAsync(new[] { "" }));
 
             // duplicate symbol
@@ -53,7 +57,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestFieldsArgument()
         {
-            Security security = await new YahooQuotes()
+            Security? security = await new YahooQuotes()
                 // can use string field names:
                 .Fields("Bid", "Ask", "Tradeable", "LongName")
                 // and/or field enums:
@@ -62,6 +66,8 @@ namespace YahooFinanceApi.Tests
 
             // when no fields are specified, many(all?) fields are returned!
             security = await new YahooQuotes().GetAsync("C");
+            if (security == null)
+                throw new Exception("Invalid symbol: C");
             Assert.True(security.Fields.Count > 10);
 
             // duplicate field
@@ -72,22 +78,25 @@ namespace YahooFinanceApi.Tests
             await Assert.ThrowsAsync<ArgumentException>(async () =>
                 await new YahooQuotes().Fields("currency", "bid").Fields(Field.Ask, Field.Bid).GetAsync("C"));
 
-            // invalid fields are ignored
+            // invalid fields return null
             security = await new YahooQuotes().Fields("invalidfield").GetAsync("C");
-            Assert.Throws<KeyNotFoundException>(() => security["invalidfield"]);
-            Assert.False(security.Fields.TryGetValue("invalidfield", out dynamic bid));
+            if (security == null)
+                throw new Exception("Invalid symbol: C");
+            Assert.Null(security["invalidfield"]);
         }
 
         [Fact]
         public async Task TestQuery()
         {
-            Security security = await new YahooQuotes().GetAsync("AAPL");
+            Security? security = await new YahooQuotes().GetAsync("AAPL");
+            if (security == null)
+                throw new Exception("bad symbol");
 
             // Properties returns static type.
-            double bid1 = security.Bid;
+            double? bid1 = security.Bid;
 
             // String or enum indexers return dynamic type.
-            security.Fields.TryGetValue("Bid", out dynamic bid2);
+            security.Fields.TryGetValue("Bid", out dynamic? bid2);
             bid2 = security.Fields["Bid"];
             bid2 = security["Bid"];
             bid2 = security[Field.Bid];
@@ -106,39 +115,46 @@ namespace YahooFinanceApi.Tests
             // The length limit for a URI depends on the browser.
             // Exception.Message.StartsWith("Invalid URI: The Uri string is too long.");
 
-            Dictionary<string, Security> securities = await new YahooQuotes().GetAsync(symbols);
+            Dictionary<string, Security?> securities = await new YahooQuotes().GetAsync(symbols);
 
             var counted = symbols.Where(s => securities.ContainsKey(s)).Count();
             Write($"requested symbols: {symbols.Count}");
             Write($"returned securities: {securities.Count}");
             Write($"missing: {symbols.Count - counted}");
-            //Write($"changed?: {securities.Count - counted}");
         }
 
         [Fact]
         public async Task TestDateTime()
         {
-            Security security = await new YahooQuotes().GetAsync("C");
+            Security? security = await new YahooQuotes().GetAsync("C");
+            if (security == null)
+                throw new Exception("Invalid symbol");
 
             // RegularMarketTime is the time of the last price during regular market hours.
-            long seconds = security.RegularMarketTime;
+            long? seconds = security.RegularMarketTime;
+            if (seconds == null)
+                throw new Exception("Invalid seconds");
+
             Write("UnixTimeSeconds: " + seconds);
 
-            Instant instant = Instant.FromUnixTimeSeconds(seconds);
+            Instant instant = Instant.FromUnixTimeSeconds(seconds.Value);
             Write("Instant: " + instant); // ISO 8601 format string: yyyy-MM-ddTHH:mm:ssZ
 
-            string exchangeTimezoneName = security.ExchangeTimezoneName;
+            string? exchangeTimezoneName = security.ExchangeTimezoneName;
             Write("ExchangeTimezoneName: " + exchangeTimezoneName);
 
-            DateTimeZone timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(exchangeTimezoneName);
+            DateTimeZone? timeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(exchangeTimezoneName);
             Assert.NotNull(timeZone);
 
             ZonedDateTime zdt = instant.InZone(timeZone);
             Write("ZonedDateTime: " + zdt);
 
             // Using the provided extension methods:
-            timeZone = security.ExchangeTimezoneName.ToDateTimeZone();
-            ZonedDateTime zdt2 = security.RegularMarketTime.ToZonedDateTime(timeZone);
+            timeZone = security.ExchangeTimezoneName?.ToDateTimeZone();
+            if (timeZone == null)
+                throw new Exception("Invalid timeZone");
+
+            ZonedDateTime? zdt2 = security.RegularMarketTime?.ToZonedDateTime(timeZone);
             Assert.Equal(zdt, zdt2);
         }
 
@@ -162,11 +178,14 @@ namespace YahooFinanceApi.Tests
         [InlineData("FBU.NZ")] // Auckland + 12
         public async Task PeriodWithUnixTimeSeconds2(string symbol)
         {
-            Security security = await new YahooQuotes().GetAsync(symbol);
-            string timeZoneName = security.ExchangeTimezoneName;
-            DateTimeZone timeZone = timeZoneName.ToDateTimeZone();
+            Security? security = await new YahooQuotes().GetAsync(symbol);
+            if (security == null)
+                throw new Exception("invalid symbol: " + symbol);
+            DateTimeZone ? timeZone = security.ExchangeTimezoneName?.ToDateTimeZone();
+            if (timeZone == null)
+                throw new Exception("Invalid time zone");
 
-            ZonedDateTime zdt = security.RegularMarketTime.ToZonedDateTime(timeZone);
+            ZonedDateTime? zdt = security.RegularMarketTime?.ToZonedDateTime(timeZone);
 
             Write($"Symbol:        {symbol}");
             Write($"TimeZone:      {timeZone.Id}");

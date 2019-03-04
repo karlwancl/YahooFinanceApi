@@ -4,9 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.CSharp;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 
 namespace YahooFinanceApi.Tests
 {
@@ -17,10 +14,10 @@ namespace YahooFinanceApi.Tests
 
         private async Task<List<KeyValuePair<string, dynamic>>> GetFields()
         {
-            return (await new YahooQuotes().GetAsync("C"))
-                .Fields
-                .OrderBy(x => x.Key)
-                .ToList();
+            var result = await new YahooQuotes().GetAsync("C");
+            if (result == null)
+                throw new Exception("invalid symbol");
+            return result.Fields.OrderBy(x => x.Key).ToList();
         }
 
         [Fact]
@@ -40,7 +37,7 @@ namespace YahooFinanceApi.Tests
 
             Write($"// Security.cs: {fields.Count}. This list was generated automatically from names defined by Yahoo.");
             foreach (var field in fields)
-                Write($"public {field.Value.GetType().Name} {field.Key} => this[\"{field.Key}\"];");
+                Write($"public {field.Value.GetType().Name}? {field.Key} => Get();");
             Write(Environment.NewLine);
         }
 
