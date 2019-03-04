@@ -37,11 +37,12 @@ You can find the package through Nuget
     using YahooFinanceApi;
 
 ### Get stock quotes
-    // You could query multiple symbols with multiple fields through the following steps:
-    var securities = await Yahoo.Symbols("AAPL", "GOOG").Fields(Field.Symbol, Field.RegularMarketPrice, Field.FiftyTwoWeekHigh).QueryAsync();
-    var aapl = securities["AAPL"];
-    var price = aapl[Field.RegularMarketPrice] // or, you could use aapl.RegularMarketPrice directly for typed-value
-
+```csharp
+var securities = await new YahooQuotes()
+        .GetAsync(new [] { "C", "AAPL" });
+security = securities["C"];
+var price = security.RegularMarketPrice;
+```
 ### Supported fields for stock quote
 ||||||
 |--|--|--|--|--|--|
@@ -62,29 +63,24 @@ You can find the package through Nuget
     Yahoo.IgnoreEmptyRows = true;
 
 ### Get historical data for a stock
-    // You should be able to query data from various markets including US, HK, TW
-    // The startTime & endTime here defaults to EST timezone
-    var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
-
-    foreach (var candle in history)
-    {
-        Console.WriteLine($"DateTime: {candle.DateTime}, Open: {candle.Open}, High: {candle.High}, Low: {candle.Low}, Close: {candle.Close}, Volume: {candle.Volume}, AdjustedClose: {candle.AdjustedClose}");
-    }
-
+```csharp
+var securities = await new YahooHistory()
+        .Period(Duration.FromDays(10))
+        .GetHistoryAsync(new[] { "C", "AAPL" });
+var historyTicks = securities["C"];
+var firstClose = historyTicks[0].Close;
+```
 ### Get dividend history for a stock
-    // You should be able to query data from various markets including US, HK, TW
-    var dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
-    foreach (var candle in dividends)
-    {
-        Console.WriteLine($"DateTime: {candle.DateTime}, Dividend: {candle.Dividend}");
-    }
-
+```csharp
+var securities = await new YahooHistory()
+        .Period(Duration.FromDays(10))
+        .GetDividendsAsync(new[] { "C", "AAPL" });
+```
 ### Get stock split history for a stock
-    var splits = await Yahoo.GetSplitsAsync("AAPL", new DateTime(2014, 6, 8), new DateTime(2014, 6, 10));
-    foreach (var s in splits)
-    {
-        Console.WriteLine($"DateTime: {s.DateTime}, AfterSplit: {s.AfterSplit}, BeforeSplit: {s.BeforeSplit}");
-    }
-
+```csharp
+var securities = await new YahooHistory()
+        .Period(Duration.FromDays(10))
+        .GetSplitsAsync(new[] { "C", "AAPL" });
+```
 ### Powered by
 * [Flurl](https://github.com/tmenier/Flurl) ([@tmenier](https://github.com/tmenier)) - A simple & elegant fluent-style REST api library 
