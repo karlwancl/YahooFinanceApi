@@ -4,19 +4,19 @@
   </PropertyGroup>
   <PropertyGroup>
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
-    <Copyright>Copyright (c) 2016-2017 Karl Wan</Copyright>
+    <Copyright>Copyright (c) 2016-2019 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>2.1.0</VersionPrefix>
-    <LangVersion>latest</LangVersion>
+    <VersionPrefix>3.0.0-beta1</VersionPrefix>
+    <LangVersion>8.0</LangVersion>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>YahooFinanceApi</AssemblyName>
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
-    <PackageReleaseNotes>[04/3/2019] VS2019 and C#8 (@dshe)
-[26/2/2019] Added support for multiple historical symbols (@dshe)
-[12/2/2019] Added post market fields (by @KrisSiegel)
-[16/9/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
+    <PackageReleaseNotes>[04/03/2019] VS2019 and C#8 (@dshe)
+[26/02/2019] Added support for multiple historical symbols (@dshe)
+[12/02/2019] Added post market fields (by @KrisSiegel)
+[16/09/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
 [12/12/2017] Fixed quote property case handling, improved tests
 [16/11/2017] Added Fields for newly added QueryAsync method
 [12/11/2017] Added QueryAsync method as a replacement of the original GetAsync method
@@ -41,7 +41,7 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <Version>3.0.0-beta1</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
