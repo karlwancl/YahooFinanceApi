@@ -5,7 +5,7 @@ before_build:
 build:
   verbosity: minimal
 after_build:
-- cmd: dotnet pack -c release
+- cmd: dotnet pack -c debug
 test_script:
 - cmd: dotnet test .\YahooFinanceApi.Tests\YahooFinanceApi.Tests.csproj
 artifacts:
@@ -15,4 +15,4 @@ deploy:
   api_key:
     secure: Q0wn/s/Hz++CAXsroPtrrzn6D58oUtxVpjCmCsxdgVoywVIzfErcCIrtb/FOfEd5
   on:
-    branch: master
+    branch: dev
