@@ -38,7 +38,8 @@ using YahooFinanceApi;
 ```
 ### Get stock quotes
 ```csharp
-var securities = await new YahooQuotes().GetAsync(new [] { "C", "AAPL" });
+var securities = await new YahooQuotes()
+   .GetAsync(new [] { "C", "AAPL" });
 security = securities["C"];
 var price = security.RegularMarketPrice;
 ```
@@ -50,19 +51,25 @@ Sometimes, yahoo returns broken rows for historical calls, you could decide if t
 Yahoo.IgnoreEmptyRows = true;
 ```    
 
-### Get historical data for a stock
+### Get historical data for stocks
 ```csharp
-var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetHistoryAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetHistoryAsync(new[] { "C", "AAPL" });
 var historyTicks = securities["C"];
 var firstClose = historyTicks[0].Close;
 ```
-### Get dividend history for a stock
+### Get dividend history for stocks
 ```csharp
-var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetDividendsAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetDividendsAsync(new[] { "C", "AAPL" });
 ```
-### Get stock split history for a stock
+### Get stock split history for stocks
 ```csharp
-var securities = await new YahooHistory().Period(Duration.FromDays(10)).GetSplitsAsync(new[] { "C", "AAPL" });
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetSplitsAsync(new[] { "C", "AAPL" });
 ```
 ### Powered by
 * [Flurl](https://github.com/tmenier/Flurl) ([@tmenier](https://github.com/tmenier)) - A simple & elegant fluent-style REST api library 
