@@ -1,5 +1,7 @@
 ﻿using NodaTime;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     public sealed class SplitTick : ITick

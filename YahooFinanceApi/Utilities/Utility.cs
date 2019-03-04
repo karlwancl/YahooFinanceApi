@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using NodaTime;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     internal static class Utility

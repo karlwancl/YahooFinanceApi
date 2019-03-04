@@ -4,6 +4,8 @@ using System.Globalization;
 using NodaTime;
 using NodaTime.Text;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     internal static class TickParser

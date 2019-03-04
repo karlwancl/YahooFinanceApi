@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Flurl.Http;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     internal static class ClientFactory

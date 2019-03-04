@@ -11,6 +11,8 @@ using System.Net;
 using System.Diagnostics;
 using System.Linq;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     public sealed class YahooHistory

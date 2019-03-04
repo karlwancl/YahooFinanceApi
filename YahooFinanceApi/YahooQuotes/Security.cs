@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+#nullable enable
+
 namespace YahooFinanceApi
 {
     public class Security

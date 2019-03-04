@@ -10,6 +10,7 @@ using NodaTime.TimeZones;
 using System.Threading;
 using Flurl.Http;
 
+#nullable enable
 
 namespace YahooFinanceApi.Tests
 {

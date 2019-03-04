@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
+#nullable enable
+
 namespace YahooFinanceApi.Tests
 {
     public class YahooQuotesTest
