@@ -5,42 +5,35 @@
 [![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)](https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE)
 
 A handy Yahoo! Finance API wrapper supporting .NET Standard 2.0
-
-## Features
-* Get delayed quotes
-* Get historical quotes
-* Get dividend history
-* Get stock split history
-
-## Supported Platforms
+### Features
+* Delayed quotes
+* Historical quotes
+* Dividend history
+* Stock split history
+### Supported Platforms
 .NET Standard 2.0
-
-## How To Install
-
+### Installation
 ```csharp
 PM> Install-Package YahooFinanceApi
 ```
 ```csharp
 using YahooFinanceApi;
 ```
-## How To Use
 Dependencies: NodaTime
-
-### Get stock quotes
+### Delayed quotes
 ```csharp
 var securities = await new YahooQuotes()
    .GetAsync(new [] { "C", "AAPL" });
 security = securities["C"];
 var price = security.RegularMarketPrice;
 ```
-### Supported quote fields
+### Supported delayed quote fields
 Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent.
 ### Ignore invalid rows
 Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
 ```csharp
 Yahoo.IgnoreEmptyRows = true;
 ```    
-
 ### Historical quotes
 ```csharp
 var securities = await new YahooHistory()
@@ -61,5 +54,5 @@ var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetSplitsAsync(new[] { "C", "AAPL" });
 ```
-## Notes
+### Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
