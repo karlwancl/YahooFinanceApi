@@ -24,7 +24,9 @@ Dependencies: NodaTime
 ```csharp
 var securities = await new YahooQuotes()
    .GetAsync(new [] { "C", "AAPL" });
+
 security = securities["C"];
+
 var price = security.RegularMarketPrice;
 ```
 ***Supported Fields:***
@@ -35,7 +37,9 @@ Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, B
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetHistoryAsync(new[] { "C", "AAPL" });
+
 var security = securities["C"];
+
 var firstClose = security[0].Close;
 ```
 ### Dividend History
@@ -50,10 +54,5 @@ var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetSplitsAsync(new[] { "C", "AAPL" });
 ```
-### Invalid Rows
-Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
-```csharp
-Yahoo.IgnoreEmptyRows = true;
-```    
 ### Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
