@@ -20,21 +20,17 @@ PM> Install-Package YahooFinanceApi
 using YahooFinanceApi;
 ```
 Dependencies: NodaTime
-### Delayed quotes
+### Delayed Quotes
 ```csharp
 var securities = await new YahooQuotes()
    .GetAsync(new [] { "C", "AAPL" });
 security = securities["C"];
 var price = security.RegularMarketPrice;
 ```
-### Supported delayed quote fields
+***Supported Fields:***
+
 Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent.
-### Ignore invalid rows
-Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
-```csharp
-Yahoo.IgnoreEmptyRows = true;
-```    
-### Historical quotes
+### Historical Quotes
 ```csharp
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
@@ -42,17 +38,22 @@ var securities = await new YahooHistory()
 var historyTicks = securities["C"];
 var firstClose = historyTicks[0].Close;
 ```
-### Dividend history
+### Dividend History
 ```csharp
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetDividendsAsync(new[] { "C", "AAPL" });
 ```
-### Stock split history
+### Stock Split History
 ```csharp
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetSplitsAsync(new[] { "C", "AAPL" });
 ```
+### Invalid rows
+Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
+```csharp
+Yahoo.IgnoreEmptyRows = true;
+```    
 ### Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
