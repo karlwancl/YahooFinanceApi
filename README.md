@@ -35,8 +35,8 @@ Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, B
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetHistoryAsync(new[] { "C", "AAPL" });
-var historyTicks = securities["C"];
-var firstClose = historyTicks[0].Close;
+var security = securities["C"];
+var firstClose = security[0].Close;
 ```
 ### Dividend History
 ```csharp
@@ -50,7 +50,7 @@ var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetSplitsAsync(new[] { "C", "AAPL" });
 ```
-### Invalid rows
+### Invalid Rows
 Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement:
 ```csharp
 Yahoo.IgnoreEmptyRows = true;
