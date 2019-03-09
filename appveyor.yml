@@ -5,7 +5,7 @@ before_build:
 build:
   verbosity: minimal
 after_build:
-- cmd: dotnet pack -c debug
+- cmd: dotnet pack -c release
 test_script:
 - cmd: dotnet test .\YahooFinanceApi.Tests\YahooFinanceApi.Tests.csproj
 artifacts:
