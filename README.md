@@ -1,105 +1,58 @@
 # YahooFinanceApi
 [![Build status](https://ci.appveyor.com/api/projects/status/138s6on1y0wnaxms?svg=true)](https://ci.appveyor.com/project/lppkarl/yahoofinanceapi)
-[![NuGet](https://img.shields.io/nuget/v/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
+[![NuGet](https://img.shields.io/nuget/vpre/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![NuGet](https://img.shields.io/nuget/dt/YahooFinanceApi.svg)](https://www.nuget.org/packages/YahooFinanceApi/)
 [![license](https://img.shields.io/github/license/lppkarl/YahooFinanceApi.svg)](https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE)
 
-A handy Yahoo! Finance api wrapper, based on .NET Standard 2.0
+A handy Yahoo! Finance API wrapper supporting .NET Standard 2.0
+### Features
+* Delayed quotes
+* Historical quotes
+* Dividend history
+* Stock split history
+### Supported Platforms
+.NET Standard 2.0
+### Installation
+```csharp
+PM> Install-Package YahooFinanceApi
+```
+```csharp
+using YahooFinanceApi;
+```
+Dependencies: NodaTime
+### Delayed Quotes
+```csharp
+var securities = await new YahooQuotes()
+   .GetAsync(new [] { "C", "AAPL" });
 
-## Features
-* Get quotes
-* Get historical data
-* Get dividend data
-* Get stock split data
+security = securities["C"];
 
-## Notes
+var price = security.RegularMarketPrice;
+```
+***Supported Fields:***
+
+Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent.
+### Historical Quotes
+```csharp
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetHistoryAsync(new[] { "C", "AAPL" });
+
+var security = securities["C"];
+
+var firstClose = security[0].Close;
+```
+### Dividend History
+```csharp
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetDividendsAsync(new[] { "C", "AAPL" });
+```
+### Stock Split History
+```csharp
+var securities = await new YahooHistory()
+   .Period(Duration.FromDays(10))
+   .GetSplitsAsync(new[] { "C", "AAPL" });
+```
+### Notes
 This library is intended for personal use only, any improper use of this library is not recommended.
-
-## Install Note
-For traditional .NET framework user, if you find a "System.Runtime.Serialization.Primitives" missing exception is thrown when using this library, you have to install the missing package manually as nuget does not auto install this reference for you (Bugged?)
-
-## Important Note (2017/11/12)
-As Yahoo has terminated their csv quote service, the depending GetAsync method is no longer usable. Please consider using QueryAsync method instead.
-
-## v2.1 Changes (2017/11/12) (Great thanks again to @dshe :D)
-* GetAsync method is obsoleted since Yahoo has terminated their csv quote service
-* Added QueryAsync as a replacement of the original GetAsync method
-* Added Fields for QueryAsync method
-
-## v2.0 Changes (2017/10/28) (Great thanks for PRs from @dshe :D)
-* Removed error-proned timezone support
-* All api call now reads and returns datetime in EST instead of local timezone.
-* Removed ascending, leaveZeroWhenInvalid parameter in historical api call.
-* IgnoreEmptyRows property in replacement with the original leaveZeroIfInvalid parameter.
-* Performance boost on async calls.
-
-## Supported Platforms
-* .NET Core 2.0
-* .NET framework 4.6.1 or above
-* Xamarin.iOS
-* Xamarin.Android
-* Universal Windows Platform
-
-## How To Install
-You can find the package through Nuget
-
-    PM> Install-Package YahooFinanceApi
-
-## How To Use
-
-### Add reference
-
-    using YahooFinanceApi;
-
-### Get stock quotes
-    // You could query multiple symbols with multiple fields through the following steps:
-    var securities = await Yahoo.Symbols("AAPL", "GOOG").Fields(Field.Symbol, Field.RegularMarketPrice, Field.FiftyTwoWeekHigh).QueryAsync();
-    var aapl = securities["AAPL"];
-    var price = aapl[Field.RegularMarketPrice] // or, you could use aapl.RegularMarketPrice directly for typed-value
-
-### Supported fields for stock quote
-||||||
-|--|--|--|--|--|--|
-| Language | QuoteType | QuoteSourceName | Currency | MarketState | RegularMarketPrice | 
-| RegularMarketTime | RegularMarketChange | RegularMarketOpen | RegularMarketDayHigh | RegularMarketDayLow | RegularMarketVolume |
-| ShortName | FiftyTwoWeekHighChange | FiftyTwoWeekHighChangePercent | FiftyTwoWeekLow | FiftyTwoWeekHigh | DividendDate |
-| EarningsTimestamp | EarningsTimestampStart | EarningsTimestampEnd | TrailingAnnualDividendRate | TrailingPE | TrailingAnnualDividendYield | 
-| EpsTrailingTwelveMonths | EpsForward | SharesOutstanding | BookValue | RegularMarketChangePercent | RegularMarketPreviousClose | 
-| Bid | Ask | BidSize | AskSize | MessageBoardId | FullExchangeName | 
-| LongName | FinancialCurrency | AverageDailyVolume3Month | AverageDailyVolume10Day | FiftyTwoWeekLowChange | FiftyTwoWeekLowChangePercent |
-| TwoHundredDayAverageChangePercent | MarketCap | ForwardPE | PriceToBook | SourceInterval | ExchangeTimezoneName |
-| ExchangeTimezoneShortName | Market | Exchange | ExchangeDataDelayedBy | PriceHint | FiftyDayAverage |
-| FiftyDayAverageChange | FiftyDayAverageChangePercent | TwoHundredDayAverage | TwoHundredDayAverageChange | Tradeable | GmtOffSetMilliseconds |
-| Symbol |||||
-
-### Ignore invalid rows
-    // Sometimes, yahoo returns broken rows for historical calls, you could decide if these invalid rows is ignored or not by the following statement
-    Yahoo.IgnoreEmptyRows = true;
-
-### Get historical data for a stock
-    // You should be able to query data from various markets including US, HK, TW
-    // The startTime & endTime here defaults to EST timezone
-    var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
-
-    foreach (var candle in history)
-    {
-        Console.WriteLine($"DateTime: {candle.DateTime}, Open: {candle.Open}, High: {candle.High}, Low: {candle.Low}, Close: {candle.Close}, Volume: {candle.Volume}, AdjustedClose: {candle.AdjustedClose}");
-    }
-
-### Get dividend history for a stock
-    // You should be able to query data from various markets including US, HK, TW
-    var dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
-    foreach (var candle in dividends)
-    {
-        Console.WriteLine($"DateTime: {candle.DateTime}, Dividend: {candle.Dividend}");
-    }
-
-### Get stock split history for a stock
-    var splits = await Yahoo.GetSplitsAsync("AAPL", new DateTime(2014, 6, 8), new DateTime(2014, 6, 10));
-    foreach (var s in splits)
-    {
-        Console.WriteLine($"DateTime: {s.DateTime}, AfterSplit: {s.AfterSplit}, BeforeSplit: {s.BeforeSplit}");
-    }
-
-### Powered by
-* [Flurl](https://github.com/tmenier/Flurl) ([@tmenier](https://github.com/tmenier)) - A simple & elegant fluent-style REST api library 
