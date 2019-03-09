@@ -11,7 +11,6 @@ namespace YahooFinanceApi
     internal static class TickParser
     {
         private static readonly LocalDatePattern pattern = LocalDatePattern.CreateWithInvariantCulture("yyyy-MM-dd");
-        public static bool IgnoreEmptyRows { get; set; }
 
         internal static string GetParamFromType<ITick>()
         {
@@ -24,27 +23,27 @@ namespace YahooFinanceApi
             else if (type == typeof(SplitTick))
                 return "split";
 
-            throw new Exception("GetParamFromTickType<T>: Invalid type.");
+            throw new Exception("GetParamFromTickType: Invalid type.");
         }
 
-        internal static ITick? Parse<ITick>(string[] row) where ITick: class
+        internal static ITick? Parse<ITick>(string[] row, bool ignoreEmptyRows) where ITick: class
         {
             var type = typeof(ITick);
             object? instance;
 
             if (type == typeof(HistoryTick))
-                instance = ToHistoryTick(row);
+                instance = ToHistoryTick(row, ignoreEmptyRows);
             else if (type == typeof(DividendTick))
-                instance = ToDividendTick(row);
+                instance = ToDividendTick(row, ignoreEmptyRows);
             else if (type == typeof(SplitTick))
-                instance = ToSplitTick(row);
+                instance = ToSplitTick(row, ignoreEmptyRows);
             else
                 throw new Exception("Parse<ITick>: Invalid type.");
 
             return (ITick?)instance;
         }
 
-        private static HistoryTick? ToHistoryTick(string[] row)
+        private static HistoryTick? ToHistoryTick(string[] row, bool ignoreEmptyRows)
         {
             var tick = new HistoryTick
             {
@@ -57,7 +56,7 @@ namespace YahooFinanceApi
                 Volume        = row[6].ToInt64()
             };
 
-            if (IgnoreEmptyRows &&
+            if (ignoreEmptyRows &&
                 tick.Open == 0 && tick.High == 0 && tick.Low == 0 && tick.Close == 0 &&
                 tick.AdjustedClose == 0 &&  tick.Volume == 0)
                 return null;
@@ -65,7 +64,7 @@ namespace YahooFinanceApi
             return tick;
         }
 
-        private static DividendTick? ToDividendTick(string[] row)
+        private static DividendTick? ToDividendTick(string[] row, bool gnoreEmptyRows)
         {
             var tick = new DividendTick
             {
@@ -73,13 +72,13 @@ namespace YahooFinanceApi
                 Dividend = row[1].ToDecimal()
             };
 
-            if (IgnoreEmptyRows && tick.Dividend == 0)
+            if (gnoreEmptyRows && tick.Dividend == 0)
                 return null;
 
             return tick;
         }
 
-        private static SplitTick? ToSplitTick(string[] row)
+        private static SplitTick? ToSplitTick(string[] row, bool gnoreEmptyRows)
         {
             var tick = new SplitTick { Date = row[0].ToLocalDate() };
 
@@ -90,7 +89,7 @@ namespace YahooFinanceApi
                 tick.BeforeSplit = split[1].ToDecimal();
             }
 
-            if (IgnoreEmptyRows && tick.AfterSplit == 0 && tick.BeforeSplit == 0)
+            if (gnoreEmptyRows && tick.AfterSplit == 0 && tick.BeforeSplit == 0)
                 return null;
 
             return tick;

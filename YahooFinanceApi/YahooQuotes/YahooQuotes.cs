@@ -14,28 +14,25 @@ namespace YahooFinanceApi
 {
     // Invalid symbols are often, but not always, ignored by Yahoo.
     // So the number of symbols returned may be less than requested.
-    // There seems to be no easy way to identify changed symbols.
 
     public sealed class YahooQuotes
     {
         private readonly CancellationToken ct;
-        private readonly List<string> fields = new List<string>();
+        private readonly List<string> fieldNames = new List<string>();
 
         public YahooQuotes(CancellationToken ct = default) => this.ct = ct;
 
-        public YahooQuotes Fields(params Field[] fields) => Fields(fields?.ToList());
-        public YahooQuotes Fields(IList<Field> fields) => Fields(fields?.Select(f => f.ToString()).ToList());
-        public YahooQuotes Fields(params string[] fields) => Fields(fields?.ToList());
+        public YahooQuotes Fields(params Field[] fields) => Fields(fields.ToList());
+        public YahooQuotes Fields(IList<Field> fields) => Fields(fields.Select(f => f.ToString()).ToList());
+        public YahooQuotes Fields(params string[] fields) => Fields(fields.ToList());
         public YahooQuotes Fields(IList<string> fields)
         {
-            if (fields == null || fields.Any(f => f == null))
+            if (!fields.Any() || fields.Any(x => string.IsNullOrWhiteSpace(x)))
                 throw new ArgumentException(nameof(fields));
-            if (fields.Any(x => string.IsNullOrWhiteSpace(x) || !fields.Any()))
-                throw new ArgumentException(nameof(fields));
-            this.fields.AddRange(fields);
-            var duplicates = this.fields.CaseInsensitiveDuplicates().FirstOrDefault();
-            if (duplicates != null)
-                throw new ArgumentException($"Duplicate field: {duplicates}.", nameof(fields));
+            fieldNames.AddRange(fields);
+            var duplicate = fieldNames.CaseInsensitiveDuplicates().FirstOrDefault();
+            if (duplicate != null)
+                throw new ArgumentException($"Duplicate field: {duplicate}.", nameof(fields));
             return this;
         }
 
@@ -45,7 +42,7 @@ namespace YahooFinanceApi
 
             try
             {
-                expando = await MakeRequest(new[] { symbol }, fields).ConfigureAwait(false);
+                expando = await MakeRequest(new[] { symbol }, fieldNames).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when(ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -55,7 +52,7 @@ namespace YahooFinanceApi
             dynamic quoteExpando = expando.quoteResponse;
 
             if (quoteExpando.error != null)
-                throw new InvalidDataException($"QueryAsync error: {quoteExpando.error}");
+                throw new InvalidDataException($"GetAsync error: {quoteExpando.error}");
 
             IDictionary<string, dynamic> dictionary = quoteExpando.result[0];
 
@@ -74,7 +71,7 @@ namespace YahooFinanceApi
 
             try
             {
-                expando = await MakeRequest(symbols, fields).ConfigureAwait(false);
+                expando = await MakeRequest(symbols, fieldNames).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when (ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -85,7 +82,7 @@ namespace YahooFinanceApi
             dynamic quoteExpando = expando.quoteResponse;
 
             if (quoteExpando.error != null)
-                throw new InvalidDataException($"QueryAsync error: {quoteExpando.error}");
+                throw new InvalidDataException($"GetAsync error: {quoteExpando.error}");
 
             foreach (IDictionary<string, dynamic> dictionary in quoteExpando.result)
                 securities[dictionary["symbol"]] = new Security(dictionary);
@@ -95,8 +92,6 @@ namespace YahooFinanceApi
 
         private async Task<dynamic> MakeRequest(IList<string> symbols, IList<string> fields)
         {
-            if (symbols == null || symbols.Any(x => x == null))
-                throw new ArgumentNullException(nameof(symbols));
             if (symbols.Any(x => string.IsNullOrWhiteSpace(x)) || !symbols.Any())
                 throw new ArgumentException(nameof(symbols));
             var duplicateSymbol = symbols.CaseInsensitiveDuplicates().FirstOrDefault();

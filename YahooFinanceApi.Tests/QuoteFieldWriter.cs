@@ -33,6 +33,16 @@ namespace YahooFinanceApi.Tests
         }
 
         [Fact]
+        public async Task MakeShortEnumList()
+        {
+            var fields = await GetFields();
+            Write($"// Fields.cs: {fields.Count}. This list was generated automatically from names been defined by Yahoo.");
+            Write(string.Join(", ", fields.Select(x => x.Key)));
+            Write(Environment.NewLine);
+        }
+
+
+        [Fact]
         public async Task MakePropertyList()
         {
             var fields = await GetFields();

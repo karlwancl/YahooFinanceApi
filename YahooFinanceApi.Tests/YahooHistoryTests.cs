@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using NodaTime;
-using NodaTime.TimeZones;
 using System.Threading;
-using Flurl.Http;
 
 #nullable enable
 
@@ -98,7 +96,9 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestPeriodWithDate()
         {
-            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "Asia/Taipei".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
             LocalDate localDate = new LocalDate(2019, 1, 7);
 
             var ticks = await new YahooHistory().Period(dateTimeZone, localDate).GetHistoryAsync("2448.TW");
@@ -112,7 +112,10 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestHistoryTickTest()
         {
-            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
+
             LocalDate localDate1 = new LocalDate(2017, 1, 3);
             LocalDate localDate2 = new LocalDate(2017, 1, 4);
 
@@ -139,7 +142,10 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDividend()
         {
-            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
+
             var dividends = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2016, 2, 4), new LocalDate(2016, 2, 5))
                 .GetDividendsAsync("AAPL");
@@ -153,7 +159,10 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestSplit()
         {
-            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
+
             var splits = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2014, 6, 8), new LocalDate(2014, 6, 10))
                 .GetSplitsAsync("AAPL");
@@ -166,7 +175,10 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_US()
         {
-            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
+
             var from = new LocalDate(2017, 10, 10);
             var to = new LocalDate(2017, 10, 12);
 
@@ -187,7 +199,9 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_UK()
         {
-            DateTimeZone dateTimeZone = "Europe/London".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "Europe/London".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
 
             var from = new LocalDate(2017, 10, 10);
             var to = new LocalDate(2017, 10, 12);
@@ -209,7 +223,9 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_TW()
         {
-            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone();
+            DateTimeZone? dateTimeZone = "Asia/Taipei".ToDateTimeZone();
+            if (dateTimeZone == null)
+                throw new Exception("Invalid timezone");
 
             var from = new LocalDate(2017, 10, 11);
             var to = new LocalDate(2017, 10, 13);
@@ -307,6 +323,9 @@ namespace YahooFinanceApi.Tests
             var timeZone = "America/New_York".ToDateTimeZone();
             var startDate = new LocalDate(2019, 1, 10);
 
+            if (timeZone == null)
+                throw new Exception("Invalid timezone");
+
             var ticks1 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Daily);
             if (ticks1 == null)
                 throw new Exception($"Invalid symbol: {symbol}");
@@ -362,7 +381,7 @@ namespace YahooFinanceApi.Tests
             var cts = new CancellationTokenSource();
             //cts.CancelAfter(20);
 
-            var task = new YahooHistory(cts.Token).Period(Duration.FromDays(10)).GetHistoryAsync(GetSymbols(5));
+            var task = new YahooHistory(false, cts.Token).Period(Duration.FromDays(10)).GetHistoryAsync(GetSymbols(5));
 
             cts.Cancel();
 

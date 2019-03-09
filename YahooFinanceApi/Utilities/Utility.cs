@@ -19,7 +19,7 @@ namespace YahooFinanceApi
 
     public static class ExtensionMethods
     {
-        public static DateTimeZone ToDateTimeZone(this string name) =>
+        public static DateTimeZone? ToDateTimeZone(this string name) =>
             DateTimeZoneProviders.Tzdb.GetZoneOrNull(name);
 
         public static ZonedDateTime ToZonedDateTime(this long unixTimeSeconds, DateTimeZone zone) =>

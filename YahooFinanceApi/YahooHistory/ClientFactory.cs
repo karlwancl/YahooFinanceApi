@@ -10,7 +10,7 @@ namespace YahooFinanceApi
 {
     internal static class ClientFactory
     {
-        private static IFlurlClient client;
+        private static IFlurlClient? client = null;
         private static string crumb;
         private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 

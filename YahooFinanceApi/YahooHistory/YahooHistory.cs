@@ -18,10 +18,15 @@ namespace YahooFinanceApi
     public sealed class YahooHistory
     {
         private readonly CancellationToken ct;
+        private readonly bool ignoreEmptyRows;
         private long start = 0, end = long.MaxValue;
         private Frequency frequency = Frequency.Daily;
 
-        public YahooHistory(CancellationToken ct = default) => this.ct = ct;
+        public YahooHistory(bool ignoreEmptyRows = false, CancellationToken ct = default)
+        {
+            this.ignoreEmptyRows = ignoreEmptyRows;
+            this.ct = ct;
+        }
 
         // UnixTimeSeconds, UTC, native
         public YahooHistory Period(long start, long end = long.MaxValue)
@@ -40,10 +45,9 @@ namespace YahooFinanceApi
 
         public YahooHistory Period(DateTimeZone timeZone, LocalDate start, LocalDate? end = null)
         {
-            var seconds = start.At(new LocalTime(16, 0)).InZoneLeniently(timeZone).ToInstant().ToUnixTimeSeconds();
-            if (end == null)
-                return Period(seconds, long.MaxValue);
-            return Period(seconds, end.Value.At(new LocalTime(16, 0)).InZoneLeniently(timeZone).ToInstant().ToUnixTimeSeconds());
+            var startSeconds = start.At(new LocalTime(16, 0)).InZoneLeniently(timeZone).ToInstant().ToUnixTimeSeconds();
+            var endSeconds = (end == null) ? long.MaxValue : end.Value.At(new LocalTime(16, 0)).InZoneLeniently(timeZone).ToInstant().ToUnixTimeSeconds();
+            return Period(startSeconds, endSeconds);
         }
 
         public Task<List<HistoryTick>?>
@@ -66,8 +70,6 @@ namespace YahooFinanceApi
 
         private async Task<Dictionary<string, List<ITick>?>> GetTicksAsync<ITick>(IList<string> symbols, Frequency frequency = Frequency.Daily) where ITick : class
         {
-            if (symbols == null)
-                throw new ArgumentNullException(nameof(symbols));
             if (!symbols.Any())
                 throw new ArgumentException("Empty list.", nameof(symbols));
 
@@ -91,8 +93,6 @@ namespace YahooFinanceApi
 
         private async Task<List<ITick>?> GetTicksAsync<ITick>(string symbol, Frequency frequency = Frequency.Daily) where ITick : class
         {
-            if (symbol == null)
-                throw new ArgumentNullException(nameof(symbol));
             if (string.IsNullOrWhiteSpace(symbol))
                 throw new ArgumentException("Empty string.", nameof(symbol));
 
@@ -111,6 +111,7 @@ namespace YahooFinanceApi
 
         private async Task<List<ITick>> GetTickResponseAsync<ITick>(string symbol, string tickParam) where ITick:class
         {
+
             using (var stream = await GetResponseStreamAsync(symbol, tickParam).ConfigureAwait(false))
             using (var sr = new StreamReader(stream))
             using (var csvReader = new CsvReader(sr))
@@ -121,7 +122,7 @@ namespace YahooFinanceApi
 
                 while (csvReader.Read())
                 {
-                    var tick = TickParser.Parse<ITick>(csvReader.Context.Record);
+                    var tick = TickParser.Parse<ITick>(csvReader.Context.Record, ignoreEmptyRows);
                     if (tick != null)
                         ticks.Add(tick);
                 }

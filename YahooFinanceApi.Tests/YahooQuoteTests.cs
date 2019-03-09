@@ -178,7 +178,7 @@ namespace YahooFinanceApi.Tests
         [InlineData("7203.T")] // Tokyo +9 (Toyota)
         [InlineData("NAB.AX")] // Sydney +10
         [InlineData("FBU.NZ")] // Auckland + 12
-        public async Task PeriodWithUnixTimeSeconds2(string symbol)
+        public async Task TestInternationalStocks(string symbol)
         {
             Security? security = await new YahooQuotes().GetAsync(symbol);
             if (security == null)
