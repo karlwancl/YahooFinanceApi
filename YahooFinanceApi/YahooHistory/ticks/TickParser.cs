@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using NodaTime;
 using NodaTime.Text;
@@ -10,7 +9,7 @@ namespace YahooFinanceApi
 {
     internal static class TickParser
     {
-        private static readonly LocalDatePattern pattern = LocalDatePattern.CreateWithInvariantCulture("yyyy-MM-dd");
+        private static readonly LocalDatePattern Pattern = LocalDatePattern.CreateWithInvariantCulture("yyyy-MM-dd");
 
         internal static string GetParamFromType<ITick>()
         {
@@ -23,7 +22,7 @@ namespace YahooFinanceApi
             else if (type == typeof(SplitTick))
                 return "split";
 
-            throw new Exception("GetParamFromTickType: Invalid type.");
+            throw new Exception("GetParamFromType: invalid type.");
         }
 
         internal static ITick? Parse<ITick>(string[] row, bool ignoreEmptyRows) where ITick: class
@@ -38,7 +37,7 @@ namespace YahooFinanceApi
             else if (type == typeof(SplitTick))
                 instance = ToSplitTick(row, ignoreEmptyRows);
             else
-                throw new Exception("Parse<ITick>: Invalid type.");
+                throw new Exception("Parse<ITick>: invalid type.");
 
             return (ITick?)instance;
         }
@@ -97,7 +96,7 @@ namespace YahooFinanceApi
 
         private static LocalDate ToLocalDate(this string str)
         {
-            var result = pattern.Parse(str);
+            var result = Pattern.Parse(str);
             return result.Success ? result.Value : throw new Exception($"Could not convert '{str}' to LocalDate.", result.Exception);
         }
 

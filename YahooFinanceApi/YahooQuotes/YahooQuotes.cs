@@ -1,8 +1,9 @@
 ﻿using Flurl;
 using Flurl.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,10 +18,15 @@ namespace YahooFinanceApi
 
     public sealed class YahooQuotes
     {
-        private readonly CancellationToken ct;
-        private readonly List<string> fieldNames = new List<string>();
+        private readonly ILogger<YahooQuotes> Logger;
+        private readonly CancellationToken Ct;
+        private readonly List<string> FieldNames = new List<string>();
 
-        public YahooQuotes(CancellationToken ct = default) => this.ct = ct;
+        public YahooQuotes(ILogger<YahooQuotes>? logger = null, CancellationToken ct = default)
+        {
+            Logger = logger ?? NullLogger<YahooQuotes>.Instance;
+            Ct = ct;
+        }
 
         public YahooQuotes Fields(params Field[] fields) => Fields(fields.ToList());
         public YahooQuotes Fields(IList<Field> fields) => Fields(fields.Select(f => f.ToString()).ToList());
@@ -29,8 +35,8 @@ namespace YahooFinanceApi
         {
             if (!fields.Any() || fields.Any(x => string.IsNullOrWhiteSpace(x)))
                 throw new ArgumentException(nameof(fields));
-            fieldNames.AddRange(fields);
-            var duplicate = fieldNames.CaseInsensitiveDuplicates().FirstOrDefault();
+            FieldNames.AddRange(fields);
+            var duplicate = FieldNames.CaseInsensitiveDuplicates().FirstOrDefault();
             if (duplicate != null)
                 throw new ArgumentException($"Duplicate field: {duplicate}.", nameof(fields));
             return this;
@@ -42,7 +48,7 @@ namespace YahooFinanceApi
 
             try
             {
-                expando = await MakeRequest(new[] { symbol }, fieldNames).ConfigureAwait(false);
+                expando = await MakeRequest(new[] { symbol }, FieldNames).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when(ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -71,7 +77,7 @@ namespace YahooFinanceApi
 
             try
             {
-                expando = await MakeRequest(symbols, fieldNames).ConfigureAwait(false);
+                expando = await MakeRequest(symbols, FieldNames).ConfigureAwait(false);
             }
             catch (FlurlHttpException ex) when (ex.Call.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -105,10 +111,10 @@ namespace YahooFinanceApi
             if (fields.Any())
                 url = url.SetQueryParam("fields", string.Join(",", fields), true);
 
-            Debug.WriteLine(url);
+            Logger.LogInformation(url);
 
             return await url
-                .GetAsync(ct)
+                .GetAsync(Ct)
                 .ReceiveJson() // ExpandoObject
                 .ConfigureAwait(false);
         }

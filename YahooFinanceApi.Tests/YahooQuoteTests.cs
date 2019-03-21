@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using System;
 using System.Collections.Generic;
@@ -20,24 +22,21 @@ namespace YahooFinanceApi.Tests
         public async Task SimpleQuery()
         {
             // one symbol
-            string symbol = "C";
-            Security? security = await new YahooQuotes().GetAsync(symbol);
-            if (security == null)
-                throw new Exception("Invalid symbol: " + symbol);
-            Assert.NotNull(security.LongName);
+            Security? security = await new YahooQuotes().GetAsync("C");
+            Assert.NotNull(security);
 
             // invalid symbol
-            Assert.Null(await new YahooQuotes().GetAsync("invalidSymbol"));
+            security = await new YahooQuotes().GetAsync("invalidSymbol");
+            Assert.Null(security);
 
             // multiple symbols
             IList<string> symbols = new List<string>() { "invalidSymbol", "C" };
             Dictionary<string, Security?> securities = await new YahooQuotes().GetAsync(symbols);
+            Assert.Equal(2, securities.Count);
             Assert.Null(securities["invalidSymbol"]);
+            Assert.NotNull(securities["C"]);
 
-            security = securities["C"];
-            if (security == null)
-                throw new Exception("Invalid symbol: " + symbols[0]);
-            Assert.True(security.RegularMarketPrice > 0);
+            Assert.True(securities?["C"]?.RegularMarketPrice > 0);
         }
 
         [Fact]
@@ -67,9 +66,7 @@ namespace YahooFinanceApi.Tests
                 .GetAsync("C");
 
             // when no fields are specified, many(all?) fields are returned!
-            security = await new YahooQuotes().GetAsync("C");
-            if (security == null)
-                throw new Exception("Invalid symbol: C");
+            security = await new YahooQuotes().GetAsync("C") ?? throw new Exception("Invalid symbol: C");
             Assert.True(security.Fields.Count > 10);
 
             // duplicate field
@@ -81,18 +78,14 @@ namespace YahooFinanceApi.Tests
                 await new YahooQuotes().Fields("currency", "bid").Fields(Field.Ask, Field.Bid).GetAsync("C"));
 
             // invalid fields return null
-            security = await new YahooQuotes().Fields("invalidfield").GetAsync("C");
-            if (security == null)
-                throw new Exception("Invalid symbol: C");
+            security = await new YahooQuotes().Fields("invalidfield").GetAsync("C") ?? throw new Exception("Invalid symbol: C");
             Assert.Null(security["invalidfield"]);
         }
 
         [Fact]
         public async Task TestQuery()
         {
-            Security? security = await new YahooQuotes().GetAsync("AAPL");
-            if (security == null)
-                throw new Exception("bad symbol");
+            Security security = await new YahooQuotes().GetAsync("AAPL") ?? throw new Exception("bad symbol");
 
             // Properties returns static type.
             double? bid1 = security.Bid;
@@ -128,18 +121,14 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDateTime()
         {
-            Security? security = await new YahooQuotes().GetAsync("C");
-            if (security == null)
-                throw new Exception("Invalid symbol");
+            Security security = await new YahooQuotes().GetAsync("C") ?? throw new Exception("Invalid symbol");
 
             // RegularMarketTime is the time of the last price during regular market hours.
-            long? seconds = security.RegularMarketTime;
-            if (seconds == null)
-                throw new Exception("Invalid seconds");
+            long seconds = security.RegularMarketTime ?? throw new Exception("Invalid seconds");
 
             Write("UnixTimeSeconds: " + seconds);
 
-            Instant instant = Instant.FromUnixTimeSeconds(seconds.Value);
+            Instant instant = Instant.FromUnixTimeSeconds(seconds);
             Write("Instant: " + instant); // ISO 8601 format string: yyyy-MM-ddTHH:mm:ssZ
 
             string? exchangeTimezoneName = security.ExchangeTimezoneName;
@@ -152,9 +141,7 @@ namespace YahooFinanceApi.Tests
             Write("ZonedDateTime: " + zdt);
 
             // Using the provided extension methods:
-            timeZone = security.ExchangeTimezoneName?.ToDateTimeZone();
-            if (timeZone == null)
-                throw new Exception("Invalid timeZone");
+            timeZone = security.ExchangeTimezoneName?.ToDateTimeZone() ?? throw new Exception("Invalid timeZone");
 
             ZonedDateTime? zdt2 = security.RegularMarketTime?.ToZonedDateTime(timeZone);
             Assert.Equal(zdt, zdt2);
@@ -180,18 +167,26 @@ namespace YahooFinanceApi.Tests
         [InlineData("FBU.NZ")] // Auckland + 12
         public async Task TestInternationalStocks(string symbol)
         {
-            Security? security = await new YahooQuotes().GetAsync(symbol);
-            if (security == null)
-                throw new Exception("invalid symbol: " + symbol);
-            DateTimeZone ? timeZone = security.ExchangeTimezoneName?.ToDateTimeZone();
-            if (timeZone == null)
-                throw new Exception("Invalid time zone");
-
+            Security security = await new YahooQuotes().GetAsync(symbol) ?? throw new Exception("invalid symbol: " + symbol);
+            DateTimeZone timeZone = security.ExchangeTimezoneName?.ToDateTimeZone() ?? throw new Exception("Invalid time zone");
             ZonedDateTime? zdt = security.RegularMarketTime?.ToZonedDateTime(timeZone);
 
             Write($"Symbol:        {symbol}");
             Write($"TimeZone:      {timeZone.Id}");
             Write($"ZonedDateTime: {zdt}");
         }
+
+        [Fact]
+        public async Task TestLoggerInjection()
+        {
+            YahooQuotes yahooQuotes = new ServiceCollection()
+                .AddLogging(x => x.AddDebug())
+                .AddSingleton<YahooQuotes>()
+                .BuildServiceProvider()
+                .GetRequiredService<YahooQuotes>();
+
+            await yahooQuotes.GetAsync("C"); // log message should appear in the debug output (when debugging)
+        }
+
     }
 }

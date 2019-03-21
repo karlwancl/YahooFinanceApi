@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 using Flurl.Http;
+using Microsoft.Extensions.Logging;
 
 #nullable enable
 
@@ -10,29 +10,35 @@ namespace YahooFinanceApi
 {
     internal static class ClientFactory
     {
-        private static IFlurlClient? client = null;
-        private static string crumb;
-        private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private static IFlurlClient? Client = null;
+        private static string? Crumb;
 
-        internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, CancellationToken ct)
+        internal static async Task<(IFlurlClient,string)> GetClientAndCrumbAsync(bool reset, ILogger logger, CancellationToken ct)
         {
-            await semaphore.WaitAsync(ct).ConfigureAwait(false);
+            await Semaphore.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                if (client == null || reset)
+                if (Client == null || reset)
                 {
-                    client = await CreateClientAsync(ct).ConfigureAwait(false);
-                    crumb =  await GetCrumbAsync(client, ct).ConfigureAwait(false);
+                    Client = await CreateClientAsync(logger, ct).ConfigureAwait(false);
+                    if (Client == null)
+                        throw new Exception("Null client.");
+                    Crumb = await GetCrumbAsync(Client, ct).ConfigureAwait(false);
                 }
             }
             finally
             {
-                semaphore.Release();
+                Semaphore.Release();
             }
-            return (client, crumb);
+            if (Client == null)
+                throw new Exception("Null client.");
+            if (Crumb == null)
+                throw new Exception("Null crumb.");
+            return (Client, Crumb);
         }
 
-        private static async Task<IFlurlClient> CreateClientAsync(CancellationToken ct)
+        private static async Task<IFlurlClient> CreateClientAsync(ILogger logger, CancellationToken ct)
         {
             const int MaxRetryCount = 5;
             for (int retryCount = 0; retryCount < MaxRetryCount; retryCount++)
@@ -50,7 +56,7 @@ namespace YahooFinanceApi
                 if (client.Cookies?.Count > 0)
                     return client;
 
-                Debug.WriteLine("Failure to create client. Retrying...");
+                logger.LogDebug("Failure to create client. Retrying...");
 
                 await Task.Delay(100, ct).ConfigureAwait(false);
             }
@@ -58,10 +64,11 @@ namespace YahooFinanceApi
             throw new Exception("Failure to create client.");
         }
 
-        private static Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken ct) =>
-            "https://query1.finance.yahoo.com/v1/test/getcrumb"
+        private static async Task<string> GetCrumbAsync(IFlurlClient client, CancellationToken ct) =>
+            await "https://query1.finance.yahoo.com/v1/test/getcrumb"
             .WithClient(client)
             .GetAsync(ct)
-            .ReceiveString();
+            .ReceiveString()
+            .ConfigureAwait(false);
     }
 }

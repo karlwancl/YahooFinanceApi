@@ -7,6 +7,8 @@ using Xunit;
 using Xunit.Abstractions;
 using NodaTime;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 #nullable enable
 
@@ -96,9 +98,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestPeriodWithDate()
         {
-            DateTimeZone? dateTimeZone = "Asia/Taipei".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
+            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
             LocalDate localDate = new LocalDate(2019, 1, 7);
 
             var ticks = await new YahooHistory().Period(dateTimeZone, localDate).GetHistoryAsync("2448.TW");
@@ -112,9 +112,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestHistoryTickTest()
         {
-            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
 
             LocalDate localDate1 = new LocalDate(2017, 1, 3);
             LocalDate localDate2 = new LocalDate(2017, 1, 4);
@@ -142,10 +140,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDividend()
         {
-            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
-
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
             var dividends = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2016, 2, 4), new LocalDate(2016, 2, 5))
                 .GetDividendsAsync("AAPL");
@@ -159,10 +154,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestSplit()
         {
-            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
-
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
             var splits = await new YahooHistory()
                 .Period(dateTimeZone, new LocalDate(2014, 6, 8), new LocalDate(2014, 6, 10))
                 .GetSplitsAsync("AAPL");
@@ -175,9 +167,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_US()
         {
-            DateTimeZone? dateTimeZone = "America/New_York".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
+            DateTimeZone dateTimeZone = "America/New_York".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
 
             var from = new LocalDate(2017, 10, 10);
             var to = new LocalDate(2017, 10, 12);
@@ -199,9 +189,7 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_UK()
         {
-            DateTimeZone? dateTimeZone = "Europe/London".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
+            DateTimeZone dateTimeZone = "Europe/London".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
 
             var from = new LocalDate(2017, 10, 10);
             var to = new LocalDate(2017, 10, 12);
@@ -223,15 +211,13 @@ namespace YahooFinanceApi.Tests
         [Fact]
         public async Task TestDates_TW()
         {
-            DateTimeZone? dateTimeZone = "Asia/Taipei".ToDateTimeZone();
-            if (dateTimeZone == null)
-                throw new Exception("Invalid timezone");
+            DateTimeZone dateTimeZone = "Asia/Taipei".ToDateTimeZone() ?? throw new Exception("Invalid timezone");
 
-            var from = new LocalDate(2017, 10, 11);
-            var to = new LocalDate(2017, 10, 13);
+            var from = new LocalDate(2019, 3, 19);
+            var to = new LocalDate(2019, 3, 21);
 
             var ticks = await new YahooHistory().Period(dateTimeZone, from, to)
-                .GetHistoryAsync("2498.TW", Frequency.Daily);
+                .GetHistoryAsync("2618.TW", Frequency.Daily);
             if (ticks == null)
                 throw new Exception("Invalid symbol");
 
@@ -239,9 +225,9 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
-            Assert.Equal(71.599998m, ticks[0].Close);
-            Assert.Equal(71.599998m, ticks[1].Close);
-            Assert.Equal(73.099998m, ticks[2].Close);
+            Assert.Equal(15.30m, ticks[0].Close);
+            Assert.Equal(15.25m, ticks[1].Close);
+            Assert.Equal(15.30m, ticks[2].Close);
         }
 
         [Theory]
@@ -258,15 +244,9 @@ namespace YahooFinanceApi.Tests
         [InlineData("BHP.AX")] // Sydney
         public async Task TestDates(string symbol)
         {
-            var security = await new YahooQuotes().GetAsync(symbol);
-            if (security == null)
-                throw new Exception($"Invalid symbol: {symbol}.");
-            var timeZoneName = security.ExchangeTimezoneName;
-            if (timeZoneName == null)
-                throw new Exception($"Timezone name not found.");
-            var timeZone = timeZoneName.ToDateTimeZone();
-            if (timeZone == null)
-                throw new Exception($"Invalid timezone: {timeZoneName}.");
+            var security = await new YahooQuotes().GetAsync(symbol) ?? throw new Exception($"Invalid symbol: {symbol}.");
+            var timeZoneName = security.ExchangeTimezoneName ?? throw new Exception($"Timezone name not found.");
+            var timeZone = timeZoneName.ToDateTimeZone() ?? throw new Exception($"Invalid timezone: {timeZoneName}.");
 
             var from = new LocalDate(2017, 9, 12);
             var to = from.PlusDays(2);
@@ -283,16 +263,10 @@ namespace YahooFinanceApi.Tests
         public async Task TestCurrency()
         {
             var symbol = "EURUSD=X";
-            var security = await new YahooQuotes().GetAsync(symbol);
-            if (security == null)
-                throw new Exception($"Invalid symbol: {symbol}.");
+            var security = await new YahooQuotes().GetAsync(symbol) ?? throw new Exception($"Invalid symbol: {symbol}.");
 
-            var timezoneName = security.ExchangeTimezoneName;
-            if (timezoneName == null)
-                throw new Exception($"Timezone name not found.");
-            var timeZone = timezoneName.ToDateTimeZone();
-            if (timeZone == null)
-                throw new Exception($"Invalid timezone: {timezoneName}.");
+            var timezoneName = security.ExchangeTimezoneName ?? throw new Exception($"Timezone name not found.");
+            var timeZone = timezoneName.ToDateTimeZone() ?? throw new Exception($"Invalid timezone: {timezoneName}.");
 
             // Note: Forex seems to return date = (requested date - 1 day)
             var from = new LocalDate(2017, 10, 10);
@@ -381,12 +355,25 @@ namespace YahooFinanceApi.Tests
             var cts = new CancellationTokenSource();
             //cts.CancelAfter(20);
 
-            var task = new YahooHistory(false, cts.Token).Period(Duration.FromDays(10)).GetHistoryAsync(GetSymbols(5));
+            var task = new YahooHistory(false, null, cts.Token).Period(Duration.FromDays(10)).GetHistoryAsync(GetSymbols(5));
 
             cts.Cancel();
 
             await Assert.ThrowsAnyAsync<Exception>(async () => await task);
         }
+
+        [Fact]
+        public async Task TestLoggerInjection()
+        {
+            YahooHistory yahooHistory = new ServiceCollection()
+                .AddLogging(x => x.AddDebug())
+                .AddSingleton<YahooHistory>()
+                .BuildServiceProvider()
+                .GetRequiredService<YahooHistory>();
+
+            await yahooHistory.GetHistoryAsync("C"); // log message should appear in the debug output (when debugging)
+        }
+
 
     }
 }

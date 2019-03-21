@@ -16,9 +16,7 @@ namespace YahooFinanceApi.Tests
 
         private async Task<List<KeyValuePair<string, dynamic>>> GetFields()
         {
-            var result = await new YahooQuotes().GetAsync("C");
-            if (result == null)
-                throw new Exception("invalid symbol");
+            var result = await new YahooQuotes().GetAsync("C") ?? throw new Exception("invalid symbol");
             return result.Fields.OrderBy(x => x.Key).ToList();
         }
 
@@ -38,9 +36,9 @@ namespace YahooFinanceApi.Tests
             var fields = await GetFields();
             Write($"// Fields.cs: {fields.Count}. This list was generated automatically from names been defined by Yahoo.");
             Write(string.Join(", ", fields.Select(x => x.Key)));
+            Write(".");
             Write(Environment.NewLine);
         }
-
 
         [Fact]
         public async Task MakePropertyList()

@@ -8,8 +8,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 #nullable enable
 
@@ -17,15 +18,17 @@ namespace YahooFinanceApi
 {
     public sealed class YahooHistory
     {
-        private readonly CancellationToken ct;
-        private readonly bool ignoreEmptyRows;
-        private long start = 0, end = long.MaxValue;
-        private Frequency frequency = Frequency.Daily;
+        private readonly bool IgnoreEmptyRows;
+        private readonly ILogger<YahooQuotes> Logger;
+        private readonly CancellationToken Ct;
+        private long Start = 0, End = long.MaxValue;
+        private Frequency Frequency = Frequency.Daily;
 
-        public YahooHistory(bool ignoreEmptyRows = false, CancellationToken ct = default)
+        public YahooHistory(bool ignoreEmptyRows = false, ILogger<YahooQuotes>? logger = null, CancellationToken ct = default)
         {
-            this.ignoreEmptyRows = ignoreEmptyRows;
-            this.ct = ct;
+            IgnoreEmptyRows = ignoreEmptyRows;
+            Logger = logger ?? NullLogger<YahooQuotes>.Instance;
+            Ct = ct;
         }
 
         // UnixTimeSeconds, UTC, native
@@ -35,8 +38,8 @@ namespace YahooFinanceApi
                 throw new ArgumentException("start > now");
             if (start > end)
                 throw new ArgumentException("start > end");
-            this.start = start;
-            this.end = end;
+            Start = start;
+            End = end;
             return this;
         }
 
@@ -70,6 +73,9 @@ namespace YahooFinanceApi
 
         private async Task<Dictionary<string, List<ITick>?>> GetTicksAsync<ITick>(IList<string> symbols, Frequency frequency = Frequency.Daily) where ITick : class
         {
+            if (symbols == null)
+                throw new ArgumentNullException(nameof(symbols));
+
             if (!symbols.Any())
                 throw new ArgumentException("Empty list.", nameof(symbols));
 
@@ -93,10 +99,13 @@ namespace YahooFinanceApi
 
         private async Task<List<ITick>?> GetTicksAsync<ITick>(string symbol, Frequency frequency = Frequency.Daily) where ITick : class
         {
+            if (symbol == null)
+                throw new ArgumentNullException(nameof(symbol));
+
             if (string.IsNullOrWhiteSpace(symbol))
                 throw new ArgumentException("Empty string.", nameof(symbol));
 
-            this.frequency = frequency;
+            Frequency = frequency;
             string tickParam = TickParser.GetParamFromType<ITick>();
 
             try
@@ -105,13 +114,13 @@ namespace YahooFinanceApi
             }
             catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
             {
-                return null; // symbol not found
+                Logger.LogInformation($"Symbol not found: \"{symbol}\".");
+                return null;
             }
         }
 
         private async Task<List<ITick>> GetTickResponseAsync<ITick>(string symbol, string tickParam) where ITick:class
         {
-
             using (var stream = await GetResponseStreamAsync(symbol, tickParam).ConfigureAwait(false))
             using (var sr = new StreamReader(stream))
             using (var csvReader = new CsvReader(sr))
@@ -122,7 +131,7 @@ namespace YahooFinanceApi
 
                 while (csvReader.Read())
                 {
-                    var tick = TickParser.Parse<ITick>(csvReader.Context.Record, ignoreEmptyRows);
+                    var tick = TickParser.Parse<ITick>(csvReader.Context.Record, IgnoreEmptyRows);
                     if (tick != null)
                         ticks.Add(tick);
                 }
@@ -137,12 +146,12 @@ namespace YahooFinanceApi
             {
                 try
                 {
-                    var (client, crumb) = await ClientFactory.GetClientAndCrumbAsync(reset, ct).ConfigureAwait(false);
+                    var (client, crumb) = await ClientFactory.GetClientAndCrumbAsync(reset, Logger, Ct).ConfigureAwait(false);
                     return await _GetResponseStreamAsync(client, crumb).ConfigureAwait(false);
                 }
                 catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized && !reset)
                 {
-                    Debug.WriteLine("GetResponseStreamAsync: Unauthorized. Retrying.");
+                    Logger.LogDebug("GetResponseStreamAsync: Unauthorized. Retrying.");
                     reset = true;
                 }
                 //catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
@@ -155,17 +164,17 @@ namespace YahooFinanceApi
             {
                 var url = "https://query1.finance.yahoo.com/v7/finance/download"
                     .AppendPathSegment(symbol)
-                    .SetQueryParam("period1", start)
-                    .SetQueryParam("period2", end)
-                    .SetQueryParam("interval", $"1{frequency.Name()}")
+                    .SetQueryParam("period1", Start)
+                    .SetQueryParam("period2", End)
+                    .SetQueryParam("interval", $"1{Frequency.Name()}")
                     .SetQueryParam("events", tickParam)
                     .SetQueryParam("crumb", _crumb);
 
-                Debug.WriteLine(url);
+                Logger.LogInformation(url);
 
                 return url
                     .WithClient(_client)
-                    .GetAsync(ct)
+                    .GetAsync(Ct)
                     .ReceiveStream();
             }
 
