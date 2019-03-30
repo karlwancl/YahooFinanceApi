@@ -16,12 +16,12 @@ A handy Yahoo! Finance API wrapper supporting .NET Standard 2.0
 ```csharp
 PM> Install-Package YahooFinanceApi
 ```
-```csharp
-using YahooFinanceApi;
-```
-Dependencies: NodaTime
+### Dependencies
+NodaTime
 ### Delayed Quotes
 ```csharp
+using YahooFinanceApi;
+
 var securities = await new YahooQuotes()
    .GetAsync(new [] { "C", "AAPL" });
 
@@ -34,6 +34,8 @@ var price = security.RegularMarketPrice;
 Ask, AskSize, AverageDailyVolume10Day, AverageDailyVolume3Month, Bid, BidSize, BookValue, Currency, DividendDate, EarningsTimestamp, EarningsTimestampEnd, EarningsTimestampStart, EpsForward, EpsTrailingTwelveMonths, EsgPopulated, Exchange, ExchangeDataDelayedBy, ExchangeTimezoneName, ExchangeTimezoneShortName, FiftyDayAverage, FiftyDayAverageChange, FiftyDayAverageChangePercent, FiftyTwoWeekHigh, FiftyTwoWeekHighChange, FiftyTwoWeekHighChangePercent, FiftyTwoWeekLow, FiftyTwoWeekLowChange, FiftyTwoWeekLowChangePercent, FiftyTwoWeekRange, FinancialCurrency, ForwardPE, FullExchangeName, GmtOffSetMilliseconds, Language, LongName, Market, MarketCap, MarketState, MessageBoardId, PriceHint, PriceToBook, QuoteSourceName, QuoteType, Region, RegularMarketChange, RegularMarketChangePercent, RegularMarketDayHigh, RegularMarketDayLow, RegularMarketDayRange, RegularMarketOpen, RegularMarketPreviousClose, RegularMarketPrice, RegularMarketTime, RegularMarketVolume, SharesOutstanding, ShortName, SourceInterval, Symbol, Tradeable, TrailingAnnualDividendRate, TrailingAnnualDividendYield, TrailingPE, TwoHundredDayAverage, TwoHundredDayAverageChange, TwoHundredDayAverageChangePercent.
 ### Quotes History
 ```csharp
+using YahooFinanceApi;
+
 var securities = await new YahooHistory()
    .Period(Duration.FromDays(10))
    .GetHistoryAsync(new[] { "C", "AAPL" });
