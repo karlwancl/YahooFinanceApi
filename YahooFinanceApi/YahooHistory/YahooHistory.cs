@@ -19,7 +19,7 @@ namespace YahooFinanceApi
     public sealed class YahooHistory
     {
         private readonly bool IgnoreEmptyRows;
-        private readonly ILogger<YahooQuotes> Logger;
+        private readonly ILogger Logger;
         private readonly CancellationToken Ct;
         private long Start = 0, End = long.MaxValue;
         private Frequency Frequency = Frequency.Daily;
@@ -53,23 +53,23 @@ namespace YahooFinanceApi
             return Period(startSeconds, endSeconds);
         }
 
-        public Task<List<HistoryTick>?>
-            GetHistoryAsync(string symbol, Frequency frequency = Frequency.Daily) => GetTicksAsync<HistoryTick>(symbol, frequency);
+        public Task<List<HistoryTick>?> GetHistoryAsync(string symbol, Frequency frequency = Frequency.Daily) =>
+            GetTicksAsync<HistoryTick>(symbol, frequency);
 
-        public Task<Dictionary<string, List<HistoryTick>?>>
-            GetHistoryAsync(IList<string> symbols, Frequency frequency = Frequency.Daily) => GetTicksAsync<HistoryTick>(symbols, frequency);
+        public Task<Dictionary<string, List<HistoryTick>?>> GetHistoryAsync(IList<string> symbols, Frequency frequency = Frequency.Daily) =>
+            GetTicksAsync<HistoryTick>(symbols, frequency);
 
-        public Task<List<DividendTick>?>
-            GetDividendsAsync(string symbol) => GetTicksAsync<DividendTick>(symbol);
+        public Task<List<DividendTick>?> GetDividendsAsync(string symbol) =>
+            GetTicksAsync<DividendTick>(symbol);
 
-        public Task<Dictionary<string, List<DividendTick>?>>
-            GetDividendsAsync(IList<string> symbols) => GetTicksAsync<DividendTick>(symbols);
+        public Task<Dictionary<string, List<DividendTick>?>> GetDividendsAsync(IList<string> symbols) =>
+            GetTicksAsync<DividendTick>(symbols);
 
-        public Task<List<SplitTick>?> 
-            GetSplitsAsync(string symbol) => GetTicksAsync<SplitTick>(symbol);
+        public Task<List<SplitTick>?> GetSplitsAsync(string symbol) =>
+            GetTicksAsync<SplitTick>(symbol);
 
-        public Task<Dictionary<string, List<SplitTick>?>>
-            GetSplitsAsync(IList<string> symbols) => GetTicksAsync<SplitTick>(symbols);
+        public Task<Dictionary<string, List<SplitTick>?>> GetSplitsAsync(IList<string> symbols) =>
+            GetTicksAsync<SplitTick>(symbols);
 
         private async Task<Dictionary<string, List<ITick>?>> GetTicksAsync<ITick>(IList<string> symbols, Frequency frequency = Frequency.Daily) where ITick : class
         {

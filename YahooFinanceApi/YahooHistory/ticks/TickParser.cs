@@ -31,76 +31,24 @@ namespace YahooFinanceApi
             object? instance;
 
             if (type == typeof(HistoryTick))
-                instance = ToHistoryTick(row, ignoreEmptyRows);
+                instance = HistoryTick.Create(row, ignoreEmptyRows);
             else if (type == typeof(DividendTick))
-                instance = ToDividendTick(row, ignoreEmptyRows);
+                instance = DividendTick.Create(row, ignoreEmptyRows);
             else if (type == typeof(SplitTick))
-                instance = ToSplitTick(row, ignoreEmptyRows);
+                instance = SplitTick.Create(row, ignoreEmptyRows);
             else
                 throw new Exception("Parse<ITick>: invalid type.");
 
             return (ITick?)instance;
         }
 
-        private static HistoryTick? ToHistoryTick(string[] row, bool ignoreEmptyRows)
-        {
-            var tick = new HistoryTick
-            {
-                Date          = row[0].ToLocalDate(),
-                Open          = row[1].ToDecimal(),
-                High          = row[2].ToDecimal(),
-                Low           = row[3].ToDecimal(),
-                Close         = row[4].ToDecimal(),
-                AdjustedClose = row[5].ToDecimal(),
-                Volume        = row[6].ToInt64()
-            };
-
-            if (ignoreEmptyRows &&
-                tick.Open == 0 && tick.High == 0 && tick.Low == 0 && tick.Close == 0 &&
-                tick.AdjustedClose == 0 &&  tick.Volume == 0)
-                return null;
-
-            return tick;
-        }
-
-        private static DividendTick? ToDividendTick(string[] row, bool gnoreEmptyRows)
-        {
-            var tick = new DividendTick
-            {
-                Date     = row[0].ToLocalDate(),
-                Dividend = row[1].ToDecimal()
-            };
-
-            if (gnoreEmptyRows && tick.Dividend == 0)
-                return null;
-
-            return tick;
-        }
-
-        private static SplitTick? ToSplitTick(string[] row, bool gnoreEmptyRows)
-        {
-            var tick = new SplitTick { Date = row[0].ToLocalDate() };
-
-            var split = row[1].Split('/');
-            if (split.Length == 2)
-            {
-                tick.AfterSplit  = split[0].ToDecimal();
-                tick.BeforeSplit = split[1].ToDecimal();
-            }
-
-            if (gnoreEmptyRows && tick.AfterSplit == 0 && tick.BeforeSplit == 0)
-                return null;
-
-            return tick;
-        }
-
-        private static LocalDate ToLocalDate(this string str)
+        internal static LocalDate ToLocalDate(this string str)
         {
             var result = Pattern.Parse(str);
             return result.Success ? result.Value : throw new Exception($"Could not convert '{str}' to LocalDate.", result.Exception);
         }
 
-        private static decimal ToDecimal(this string str)
+        internal static decimal ToDecimal(this string str)
         {
             if (str == "null")
                 return 0M;
@@ -111,7 +59,7 @@ namespace YahooFinanceApi
             return result;
         }
 
-        private static long ToInt64(this string str)
+        internal static long ToInt64(this string str)
         {
             if (str == "null")
                 return 0L;

@@ -46,7 +46,8 @@ namespace YahooFinanceApi
             return strings.Where(str => !hashSet.Add(str)).ToList();
         }
 
-        internal static string ToCommaDelimitedList(this IEnumerable<string> strings) => string.Join(", ", strings);
+        internal static string ToCommaDelimitedList(this IEnumerable<string> strings) =>
+            string.Join(", ", strings);
     }
 
 

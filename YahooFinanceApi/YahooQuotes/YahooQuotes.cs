@@ -18,7 +18,7 @@ namespace YahooFinanceApi
 
     public sealed class YahooQuotes
     {
-        private readonly ILogger<YahooQuotes> Logger;
+        private readonly ILogger Logger;
         private readonly CancellationToken Ct;
         private readonly List<string> FieldNames = new List<string>();
 
