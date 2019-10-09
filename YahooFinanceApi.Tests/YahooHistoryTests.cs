@@ -225,9 +225,9 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
-            Assert.Equal(15.30m, ticks[0].Close);
-            Assert.Equal(15.25m, ticks[1].Close);
-            Assert.Equal(15.30m, ticks[2].Close);
+            Assert.Equal(14.8567m, ticks[0].Close);
+            Assert.Equal(14.8082m, ticks[1].Close);
+            Assert.Equal(14.8567m, ticks[2].Close);
         }
 
         [Theory]
@@ -248,7 +248,7 @@ namespace YahooFinanceApi.Tests
             var timeZoneName = security.ExchangeTimezoneName ?? throw new Exception($"Timezone name not found.");
             var timeZone = timeZoneName.ToDateTimeZone() ?? throw new Exception($"Invalid timezone: {timeZoneName}.");
 
-            var from = new LocalDate(2017, 9, 12);
+            var from = new LocalDate(2019, 9, 4);
             var to = from.PlusDays(2);
 
             var ticks = await new YahooHistory().Period(timeZone, from, to)
@@ -268,7 +268,6 @@ namespace YahooFinanceApi.Tests
             var timezoneName = security.ExchangeTimezoneName ?? throw new Exception($"Timezone name not found.");
             var timeZone = timezoneName.ToDateTimeZone() ?? throw new Exception($"Invalid timezone: {timezoneName}.");
 
-            // Note: Forex seems to return date = (requested date - 1 day)
             var from = new LocalDate(2017, 10, 10);
             var to = from.PlusDays(2);
 
@@ -281,8 +280,8 @@ namespace YahooFinanceApi.Tests
             foreach (var tick in ticks)
                 Write($"{tick.Date} {tick.Close}");
 
-            Assert.Equal(from, ticks.First().Date.PlusDays(1));
-            Assert.Equal(to, ticks.Last().Date.PlusDays(1));
+            Assert.Equal(from, ticks.First().Date);
+            Assert.Equal(to, ticks.Last().Date);
 
             Assert.Equal(3, ticks.Count());
             Assert.Equal(1.174164m, ticks[0].Close);
@@ -300,6 +299,7 @@ namespace YahooFinanceApi.Tests
             if (timeZone == null)
                 throw new Exception("Invalid timezone");
 
+
             var ticks1 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Daily);
             if (ticks1 == null)
                 throw new Exception($"Invalid symbol: {symbol}");
@@ -307,6 +307,7 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(new LocalDate(2019, 1, 10), ticks1[0].Date);
             Assert.Equal(new LocalDate(2019, 1, 11), ticks1[1].Date);
             Assert.Equal(152.880005m, ticks1[1].Open);
+
 
             var ticks2 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Weekly);
             if (ticks2 == null)
@@ -316,13 +317,17 @@ namespace YahooFinanceApi.Tests
             Assert.Equal(new LocalDate(2019, 1, 14), ticks2[1].Date);
             Assert.Equal(150.850006m, ticks2[1].Open);
 
+
             var ticks3 = await new YahooHistory().Period(timeZone, startDate).GetHistoryAsync(symbol, Frequency.Monthly);
             if (ticks3 == null)
                 throw new Exception($"Invalid symbol: {symbol}");
 
-            Assert.Equal(new LocalDate(2019, 1, 1), ticks3[0].Date); // previous start of month
-            Assert.Equal(new LocalDate(2019, 2, 1), ticks3[1].Date);
-            Assert.Equal(166.960007m, ticks3[1].Open);
+            foreach (var tick in ticks3)
+                Write($"{tick.Date} {tick.Close}");
+
+            Assert.Equal(new LocalDate(2019, 2, 1), ticks3[0].Date); // next start of month !!!?
+            Assert.Equal(new LocalDate(2019, 3, 1), ticks3[1].Date);
+            Assert.Equal(174.279999m, ticks3[1].Open);
         }
 
         private List<string> GetSymbols(int number)
@@ -366,14 +371,12 @@ namespace YahooFinanceApi.Tests
         public async Task TestLoggerInjection()
         {
             YahooHistory yahooHistory = new ServiceCollection()
-                .AddLogging(x => x.AddDebug())
                 .AddSingleton<YahooHistory>()
                 .BuildServiceProvider()
                 .GetRequiredService<YahooHistory>();
 
             await yahooHistory.GetHistoryAsync("C"); // log message should appear in the debug output (when debugging)
         }
-
 
     }
 }

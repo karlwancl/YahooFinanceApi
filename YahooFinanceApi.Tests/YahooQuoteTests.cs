@@ -180,7 +180,6 @@ namespace YahooFinanceApi.Tests
         public async Task TestLoggerInjection()
         {
             YahooQuotes yahooQuotes = new ServiceCollection()
-                .AddLogging(x => x.AddDebug())
                 .AddSingleton<YahooQuotes>()
                 .BuildServiceProvider()
                 .GetRequiredService<YahooQuotes>();
