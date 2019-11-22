@@ -17,8 +17,8 @@ namespace YahooFinanceApi
             var split = row[1].Split('/');
             if (split.Length == 2)
             {
-                AfterSplit = split[0].ToDecimal();
-                BeforeSplit = split[1].ToDecimal();
+                BeforeSplit = split[0].ToDecimal();
+                AfterSplit = split[1].ToDecimal();
             }
         }
 
