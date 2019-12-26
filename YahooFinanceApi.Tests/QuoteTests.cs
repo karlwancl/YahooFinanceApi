@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,6 +9,39 @@ namespace YahooFinanceApi.Tests
 {
     public class QuotesTest
     {
+        [Fact]
+        public async Task TestQuoteAsync()
+        {
+            const string AAPL = "AAPL";
+
+            var quote = await Yahoo.Symbols(AAPL).Fields(
+                Field.RegularMarketOpen,
+                Field.RegularMarketDayHigh,
+                Field.RegularMarketDayLow,
+                Field.RegularMarketPrice,
+                Field.RegularMarketVolume,
+                Field.RegularMarketTime)
+                .QueryAsync();
+
+            var aaplQuote = quote[AAPL];
+            var aaplOpen = aaplQuote[Field.RegularMarketOpen.ToString()];
+            var aaplHigh = aaplQuote[Field.RegularMarketDayHigh.ToString()];
+            var aaplLow = aaplQuote[Field.RegularMarketDayLow.ToString()];
+            var aaplCurrentPrice = aaplQuote[Field.RegularMarketPrice.ToString()];
+            var aaplVolume = aaplQuote[Field.RegularMarketVolume.ToString()];
+            var aaplTime = aaplQuote[Field.RegularMarketTime.ToString()];
+
+            // Get New York Timezone for conversion from UTC to New York Time for Yahoo Quotes
+            TimeZoneInfo TzEst = TimeZoneInfo
+                .GetSystemTimeZones()
+                .Single(tz => tz.Id == "Eastern Standard Time" || tz.Id == "America/New_York");
+
+            long unixDate = 1568232001; // Any unix timestamp
+            DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime date = start.AddSeconds(unixDate);
+            DateTime estDate = TimeZoneInfo.ConvertTimeFromUtc(date, TzEst);
+        }
+
         [Fact]
         public async Task TestSymbolsArgument()
         {
