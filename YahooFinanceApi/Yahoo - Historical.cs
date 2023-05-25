@@ -56,7 +56,7 @@ namespace YahooFinanceApi
         {
             using (var stream = await GetResponseStreamAsync(symbol, startTime, endTime, period, showOption.Name(), token).ConfigureAwait(false))
 			using (var sr = new StreamReader(stream))
-			using (var csvReader = new CsvReader(sr,Culture))
+			using (var csvReader = new CsvReader(sr, Culture))
 			{
                 csvReader.Read(); // skip header
 
@@ -64,7 +64,7 @@ namespace YahooFinanceApi
 
                 while (csvReader.Read())
                 {
-                    var tick = instanceFunction(csvReader.Context.Record);
+                    var tick = instanceFunction(csvReader.Context.Parser.Record);
 #pragma warning disable RECS0017 // Possible compare of value type with 'null'
                     if (tick != null)
 #pragma warning restore RECS0017 // Possible compare of value type with 'null'
@@ -82,14 +82,14 @@ namespace YahooFinanceApi
             {
                 try
                 {
-                    var (client, crumb) = await YahooClientFactory.GetClientAndCrumbAsync(reset, token).ConfigureAwait(false);
-                    return await _GetResponseStreamAsync(client, crumb, token).ConfigureAwait(false);
+                    await YahooSession.InitAsync(token);
+                    return await _GetResponseStreamAsync(token).ConfigureAwait(false);
                 }
-                catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.NotFound)
+                catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == (int)HttpStatusCode.NotFound)
                 {
                     throw new Exception($"Invalid ticker or endpoint for symbol '{symbol}'.", ex);
                 }
-                catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == HttpStatusCode.Unauthorized)
+                catch (FlurlHttpException ex) when (ex.Call.Response?.StatusCode == (int)HttpStatusCode.Unauthorized)
                 {
                     Debug.WriteLine("GetResponseStreamAsync: Unauthorized.");
 
@@ -101,11 +101,11 @@ namespace YahooFinanceApi
 
             #region Local Functions
 
-            Task<Stream> _GetResponseStreamAsync(IFlurlClient _client, string _crumb, CancellationToken _token)
+            Task<Stream> _GetResponseStreamAsync(CancellationToken token)
             {
                 // Yahoo expects dates to be "Eastern Standard Time"
                 startTime = startTime?.FromEstToUtc() ?? new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                endTime =   endTime?  .FromEstToUtc() ?? DateTime.UtcNow;
+                endTime = endTime?.FromEstToUtc() ?? DateTime.UtcNow;
 
                 var url = "https://query1.finance.yahoo.com/v7/finance/download"
                     .AppendPathSegment(symbol)
@@ -113,13 +113,13 @@ namespace YahooFinanceApi
                     .SetQueryParam("period2", endTime.Value.ToUnixTimestamp())
                     .SetQueryParam("interval", $"1{period.Name()}")
                     .SetQueryParam("events", events)
-                    .SetQueryParam("crumb", _crumb);
+                    .SetQueryParam("crumb", YahooSession.Crumb);
 
                 Debug.WriteLine(url);
 
                 return url
-                    .WithClient(_client)
-                    .GetAsync(_token)
+                    .WithCookie(YahooSession.Cookie.Name, YahooSession.Cookie.Value)
+                    .GetAsync(token)
                     .ReceiveStream();
             }
 

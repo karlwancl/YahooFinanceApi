@@ -46,11 +46,11 @@ namespace YahooFinanceApi
         {
             var tick = new SplitTick { DateTime = row[0].ToDateTime() };
 
-            var split = row[1].Split('/');
+            var split = row[1].Split(':');
             if (split.Length == 2)
             {
-                tick.AfterSplit  = split[0].ToDecimal();
-                tick.BeforeSplit = split[1].ToDecimal();
+                tick.BeforeSplit = split[0].ToDecimal();
+                tick.AfterSplit  = split[1].ToDecimal();
             }
 
             if (IgnoreEmptyRows && tick.AfterSplit == 0 && tick.BeforeSplit == 0)
