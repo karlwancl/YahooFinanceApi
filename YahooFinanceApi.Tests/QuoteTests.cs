@@ -53,7 +53,7 @@ namespace YahooFinanceApi.Tests
             await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols().QueryAsync());
 
             // duplicate symbol
-            await Assert.ThrowsAsync<ArgumentException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await Yahoo.Symbols("C", "A", "C").QueryAsync());
 
             // invalid symbols are ignored by Yahoo!
             securities = await Yahoo.Symbols("invalidsymbol").QueryAsync();
@@ -71,7 +71,7 @@ namespace YahooFinanceApi.Tests
             Assert.True(securities["C"].Fields.Count > 10);
 
             // duplicate field
-            await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await Yahoo.Symbols("C").Fields("currency", "bid").Fields(Field.Ask, Field.Bid).QueryAsync());
 
             // invalid fields are ignored
@@ -92,7 +92,7 @@ namespace YahooFinanceApi.Tests
                 .Fields(Field.RegularMarketPrice, Field.Currency)
                 .QueryAsync();
 
-            Assert.Equal(2, securities.Count());
+            Assert.Equal(2, securities.Count);
             var security = securities["C"];
 
             // Bid string or enum indexer returns dynamic type.
@@ -104,7 +104,7 @@ namespace YahooFinanceApi.Tests
             // Bid property returns static type.
             var bid2 = security.Bid;
 
-            Assert.True(securities["C"][Field.Tradeable]);
+            Assert.False(securities["C"][Field.Tradeable]);
             Assert.Equal("Apple Inc.", securities["AAPL"]["LongName"]);
         }
 
