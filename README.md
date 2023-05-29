@@ -21,6 +21,15 @@ For traditional .NET framework user, if you find a "System.Runtime.Serialization
 ## Important Note (2017/11/12)
 As Yahoo has terminated their csv quote service, the depending GetAsync method is no longer usable. Please consider using QueryAsync method instead.
 
+## v2.2 Changes (2023/05/29) (by sergemat)
+* Changed approach for getting auth cookie
+* Added cookie authorization to all v7 APIs
+* Upgraded all Nuget packages to most recent version and updated all code to work
+* Updated tests project to .NET 6
+
+* Added QueryAsync as a replacement of the original GetAsync method
+* Added Fields for QueryAsync method
+
 ## v2.1 Changes (2017/11/12) (Great thanks again to @dshe :D)
 * GetAsync method is obsoleted since Yahoo has terminated their csv quote service
 * Added QueryAsync as a replacement of the original GetAsync method
