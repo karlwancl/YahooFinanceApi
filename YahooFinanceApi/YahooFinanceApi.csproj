@@ -12,6 +12,7 @@
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
+[8/05/2023] Fixed too many requests error caused by missing user agent header
 [5/29/2023] Fixed approach to auth cookie and updated all dependencies
 [12/2/2019] Added post market fields (by @KrisSiegel)
 [16/9/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
