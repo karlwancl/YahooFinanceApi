@@ -4,7 +4,7 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
     <Copyright>Copyright (c) 2016-2023 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>2.2.0</VersionPrefix>
+    <VersionPrefix>2.3.0</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,8 +12,8 @@
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
-[8/05/2023] Fixed too many requests error caused by missing user agent header
-[5/29/2023] Fixed approach to auth cookie and updated all dependencies
+[5/8/2023] Fixed too many requests error caused by missing user agent header
+[29/5/2023] Fixed approach to auth cookie and updated all dependencies
 [12/2/2019] Added post market fields (by @KrisSiegel)
 [16/9/2018] Upgrade CsvHelper from 6.0.2 to 7.1.1
 [12/12/2017] Fixed quote property case handling, improved tests
@@ -26,7 +26,7 @@
 [18/10/2017] Removed timezone support. (Breaking change) All api call now reads and returns datetime in est instead of local timezone
 [8/10/2017] Added timezone support for historical api
 [5/10/2017] Added currency tag for stock quoting
-[20/09/2017] Added .NET Standard 2.0 support, added leaveZeroIfInvalidRow parameter for historical methods
+[20/9/2017] Added .NET Standard 2.0 support, added leaveZeroIfInvalidRow parameter for historical methods
 </PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/lppkarl/YahooFinanceApi</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/lppkarl/YahooFinanceApi/blob/master/LICENSE</PackageLicenseUrl>
@@ -39,7 +39,7 @@
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.2.0</Version>
+    <Version>2.3.0</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
