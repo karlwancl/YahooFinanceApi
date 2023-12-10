@@ -4,7 +4,7 @@
     <Description>A handy Yahoo! Finance api wrapper, based on .NET standard 2.0</Description>
     <Copyright>Copyright (c) 2016-2023 Karl Wan</Copyright>
     <AssemblyTitle>YahooFinanceApi</AssemblyTitle>
-    <VersionPrefix>2.3.0</VersionPrefix>
+    <VersionPrefix>2.3.1</VersionPrefix>
     <LangVersion>latest</LangVersion>
     <Authors>Karl Wan</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,6 +12,7 @@
     <PackageId>YahooFinanceApi</PackageId>
     <PackageTags>Yahoo;Finance;Stock;Quote;Eod;Dividend;Split</PackageTags>
     <PackageReleaseNotes>
+[12/10/2023] Fixed issue with HTTP status code 502 when creating Yahoo session
 [5/8/2023] Fixed too many requests error caused by missing user agent header
 [29/5/2023] Fixed approach to auth cookie and updated all dependencies
 [12/2/2019] Added post market fields (by @KrisSiegel)
@@ -39,7 +40,7 @@
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <Version>2.3.0</Version>
+    <Version>2.3.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
