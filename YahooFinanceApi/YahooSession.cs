@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System;
 using System.Threading;
+using System.Linq;
 
 namespace YahooFinanceApi
 {
@@ -62,11 +63,14 @@ namespace YahooFinanceApi
 
                 var response = await "https://fc.yahoo.com"
                     .AllowHttpStatus("404")
+                    .AllowHttpStatus("502")
                     .WithHeader(userAgentKey, userAgentValue)
                     .GetAsync()
                     .ConfigureAwait(false);
 
-                if (response.Cookies.Count == 0)
+                _cookie = response.Cookies.FirstOrDefault(c => c.Name == "A3");
+
+                if (_cookie == null)
                 {
                     throw new Exception("Failed to obtain Yahoo auth cookie.");
                 }
