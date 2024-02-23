@@ -63,6 +63,7 @@ namespace YahooFinanceApi
 
                 var response = await "https://fc.yahoo.com"
                     .AllowHttpStatus("404")
+                    .AllowHttpStatus("500")
                     .AllowHttpStatus("502")
                     .WithHeader(userAgentKey, userAgentValue)
                     .GetAsync()
