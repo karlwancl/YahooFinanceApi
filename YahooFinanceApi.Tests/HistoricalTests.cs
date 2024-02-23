@@ -130,7 +130,7 @@ namespace YahooFinanceApi.Tests
         [InlineData("AIR.PA")] // Euronext
         [InlineData("AIR.DE")] // Xetra
         [InlineData("UNITECH.BO")] // Bombay
-        [InlineData("2800.HK")] // Hong Kong
+        [InlineData("0388.HK")] // Hong Kong
         [InlineData("000001.SS")] // Shanghai
         [InlineData("2330.TW")] // Taiwan
         [InlineData("005930.KS")] // Korea
