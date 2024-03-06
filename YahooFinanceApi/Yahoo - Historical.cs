@@ -119,6 +119,7 @@ namespace YahooFinanceApi
 
                 return url
                     .WithCookie(YahooSession.Cookie.Name, YahooSession.Cookie.Value)
+                    .WithHeader(YahooSession.UserAgentKey, YahooSession.UserAgentValue)
                     .GetAsync(token)
                     .ReceiveStream();
             }

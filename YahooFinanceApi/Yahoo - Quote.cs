@@ -92,6 +92,7 @@ namespace YahooFinanceApi
             {
                 data = await url
                     .WithCookie(YahooSession.Cookie.Name, YahooSession.Cookie.Value)
+                    .WithHeader(YahooSession.UserAgentKey, YahooSession.UserAgentValue)
                     .GetAsync(token)
                     .ReceiveJson()
                     .ConfigureAwait(false);
